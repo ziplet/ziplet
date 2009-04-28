@@ -1,0 +1,146 @@
+Version 1.7 2009-05-01
+- Attempt to accommodate very large responses whose Content-Length
+  header value exceeds Integer.MAX_VALUE
+- Always set Vary header
+- Now attempts to set a modified ETag header when compressing
+- Now avoid compressing if Cache-Contro: no-transform is set
+- Correctly handle multiple values in Content-Encoding header; other
+  transforms are preserved
+- Now should support deflated requests
+- Update to latest support libs, like Mockrunner 0.4.1
+- Various updates to match my current preferred coding style; small
+  code tweaks and additional logging
+
+Version 1.6.6, 2007-09-20
+- Bug fix: empty response is no longer compressed, avoiding exception
+  in compress/ZipOutputStream in this situation
+- Modest code tweaks from static analysis
+
+Version 1.6.5, 2007-07-14
+- Added includeUserAgentPatterns and excludeUserAgentPatterns
+  parameters to compress based on User-Agent
+- Minor updates to use generic types in Enumerator, Iterator
+  references
+- Update to Mockrunner 0.4, newer IntelliJ annotations
+- Properly included some licenses
+
+Version 1.6.4, 2006-12-11
+- Bug fix: close() and flush() implementations probably shouldn't
+  throw IllegalStateException if the stream is already closed.
+  In at least one case, Jetty gets confused by this.
+- But they do need to throw IOException, apparently, if a write- or
+  print-like method is called. Jetty wants this.
+- Small improvement: if compressionThreshold is 0, compression begins
+  earlier, saving a bit of overhead
+- flush() implementations will now definitely flush all output to the
+  response, even if it means beginning compression early.
+
+Version 1.6.3, 2006-11-17
+- Bug fix / improvement: handles case where setContentType() is
+  called after getOutputStream(), such that parameters includeContentType
+  and excludeContentType work even in this case.
+- Bug fix: response input/compressed bytes stats were swapped!
+
+Version 1.6.2, 2006-10-15
+- Fixed bug #1571644: JakartaCommonsLoggingImpl and JavaUtilLoggingImpl
+  are now public so that they may be instantiated by reflection correctly.
+
+Version 1.6.1, 2006-09-01
+- Now prefers certain encodings to others when Accept-Encoding header
+  says several are equally good. For example, Accept-Encoding: deflate,gzip
+  now gets gzip rather than deflate.
+- Also fixed a potential bug in a rare case where the most-preferred encoding
+  in the header was not supported, even though a less preferred encoding was.
+  Filter was not compressing in this case.
+
+Version 1.6, 2006-07-05
+- Added support for compressed requests, including stats
+- X-Compressed-By header only enabled in debug mode now
+- Accept-Encoding header suppressed downstream if filter is handling
+  compression
+- Minor unit tests fixes and improvements
+- Update to latest JUnit, Mockrunner, Commons Logging
+
+Version 1.5.2, 2006-02-20
+- Added include/excludePathPatterns parameters
+
+Version 1.5.1, 2005-08-06
+- More code cleanup following my update to IntelliJ 5.0
+- Added ability to also log messages to java.util.logging.Logger
+  or a Jakarta Commons Log
+
+Version 1.5, 2005-05-16
+- Updated for JDK 5.0, J2EE 1.4
+
+Version 1.4.4, 2005-08-06
+- Added ability to also log messages to a Jakarta Commons Log
+
+Version 1.4.3, 2005-05-14
+- Fix? -- avoid an IllegalStateException when an app server closes
+  a response, then flushes it. This helps users of OC4J work around a
+  possible bug.
+- Minor cleanup of close()/flush() handling while I was at it
+- Added LoadRunner class for load testing
+
+Version 1.4.2, 2005-04-02
+- Fix -- bug that would cause even small documents to be compressed.
+- Fix -- NullPointerException from flushBuffer()
+- Now, if documents sets a content length that is under the compression
+  threshold, the filter will not bother buffering the output, which
+  should increase performance on small files
+- CompressingFilter tests now use Mockrunner
+- Finally added some more unit tests, for CompressingFilter and
+  StatsOutputStream
+
+Version 1.4.1, 2005-03-08
+- Added JPackage support (http://jpackage.org)
+  Thanks to Joseph Wortmann for helping with this.
+
+Version 1.4, 2005-02-05
+- Fix -- content type was not set correctly in response when not compressing
+- Possible fix -- additional checks to avoid an exception when flushing
+  compressed streams after chain.doFilter()
+- Now will start compressing immediately if content length is set to a value
+  that exceeds the compression threshold
+- CompressingHttpServletResponse was getting too complex and was modestly
+  overhauled for simplicity. As a side effect it will be a little more
+  strict about setting headers before writing content, which should not
+  be a problem for applications. As long as you are not trying to set
+  headers after obtaining a writer/output stream, and you shouldn't anyway,
+  this should not affect you.
+
+Version 1.3, 2004-12-28
+- Minor fix -- in some cases the filter was closing the output stream even
+  when the response was not compressed. It does not anymore.
+- Added "includeContentTypes" and "excludeContentTypes" filter parameters,
+  to allow applications to compress only certain content types
+- Filter now delays calling getOutputStream() on the underlying response
+  as long as possible, to avoid errors with containers like Tomcat that
+  may later call getWriter() on the underlying response when rendering
+  an error page.
+- Added a few preliminary unit tests, which don't do much yet.
+- Added better javadoc here and there.
+
+Version 1.2, 2004-11-26
+- Fixed bug that arose when application closed the output stream
+- Application can now force encoding used in response
+- Commented out assertions in released code to allow compilation under JDK 1.3
+- Serializable classes now better follow conventions (e.g. include a
+  serialVersionUID field)
+
+Version 1.1.1, 2004-11-05
+- If an app server applies CompressingFilter to a request/response multiple
+  times (due to server-side forwards), the filter will no longer attempt to
+  re-apply itself or compress the response twice.
+- Fixed LICENSE.txt; should have been Apache 2.0 license!
+- Minor code tweaks and cleanups following runs of code analysis tools
+
+Version 1.1, 2004-06-11
+- Added CompressingFilterStats statistics object
+- Fixed NPE in CompressingFilter.destroy()
+- Fixed incorrect behavior in reset(), resetBuffer(), whereby some buffered
+  output would not be cleared
+- Minor code revisions and additional logging, assertions
+
+Version 1.0, 2004-06-04
+- Initial revision
