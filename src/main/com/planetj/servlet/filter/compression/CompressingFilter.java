@@ -59,13 +59,18 @@ import java.util.regex.Pattern;
  *
  * <p>{@link CompressingFilter} supports the following parameters:</p>
  * <ul>
+ *
  * <li><strong>debug</strong> (optional): if
  * set to "true", additional debug information will be written to the servlet log. Defaults to false.</li>
+ *
  * <li><strong>compressionThreshold</strong> (optional): sets the size of the smallest response that will be compressed,
  * in bytes. That is, if less than <code>compressionThreshold</code> bytes are written to the response, it will not be
- * compressed and the response will go to the client unmodified. Defaults to 1024.</li>
+ * compressed and the response will go to the client unmodified. If 0, compression always begins immediately.
+ * Defaults to 1024.</li>
+ *
  * <li><strong>statsEnabled</strong> (optional): enables collection of statistics. See {@link CompressingFilterStats}.
  * Defaults to false.</li>
+ *
  * <li><strong>includeContentTypes</strong> (optional): if specified, this is treated as a
  * comma-separated list of content types (e.g. <code>text/html,text/xml</code>). The filter will attempt to only
  * compress responses which specify one of these values as its content type, for example via {@link
@@ -73,8 +78,10 @@ import java.util.regex.Pattern;
  * it is applied, and so must apply itself and later attempt to disable compression when content type has been set. This
  * will fail if the response has already been committed. Also note that this parameter cannot be specified if
  * <code>excludeContentTypes</code> is too.</li>
+ *
  * <li><strong>excludeContentTypes</strong> (optional): same as above, but
  * specifies a list of content types to <strong>not</strong> compress. Everything else will be compressed.</li>
+ *
  * <li><strong>includePathPatterns</strong> (optional): if specified, this is treated as a
  * comma-separated list of regular expressions (of the type accepted by {@link java.util.regex.Pattern}) which
  * match exactly those paths which should be compressed by this filter. Anything else will not be compressed. One
@@ -85,17 +92,23 @@ import java.util.regex.Pattern;
  * the regex must match the filename exactly; pattern "static" does <strong>not</strong> match everything containing
  * the string "static. Use ".*static.*" for that, for example. This cannot be specified if <code>excludeFileTypes</code>
  * is too.</li>
+ *
  * <li><strong>excludePathPatterns</strong> (optional): same as above, but specifies a list of patterns which match
  * paths that should <strong>not</strong> be compressed. Everything else will be compressed.</li>
+ *
  * <li><strong>includeUserAgentPatterns</strong> (optional): Like <code>includePathPatterns</code>. Only requests
  * with <code>User-Agent</code> headers whose value matches one of these regular expressions will be compressed.
  * Can't be specified if <code>excludeUserAgentPatterns</code> is too.</li>
+ *
  * <li><strong>excludeUserAgentPatterns</strong> (optional): as above, requests whose <code>User-Agent</code> header
  * matches one of these patterns will not be compressed.</li>
+ *
  * <li><strong>javaUtilLogger</strong> (optional): if specified, the named <code>java.util.logging.Logger</code>
  * will also receive log messages from this filter.</li>
+ *
  * <li><strong>jakartaCommonsLogger</strong> (optional): if specified the named Jakarta Commons Log will
  * also receive log messages from this filter.</li>
+ *
  * </ul>
  *
  * <p>These values are configured in <code>web.xml</code> as well with init-param elements:<br/>
@@ -123,7 +136,7 @@ import java.util.regex.Pattern;
  * <li>compress</li>
  * <li>x-compress</li>
  * <li>deflate</li>
- * <li>identity (e.g. no compression)</li>
+ * <li>identity (that is, no compression)</li>
  * </ul>
  *
  * <h4>Request</h4>
@@ -136,6 +149,8 @@ import java.util.regex.Pattern;
  * <li>x-gzip</li>
  * <li>compress</li>
  * <li>x-compress</li>
+ * <li>deflate</li>
+ * <li>identity</li>
  * </ul>
  *
  * <h3>Controlling runtime behavior</h3>
@@ -144,12 +159,29 @@ import java.util.regex.Pattern;
  * an attribute under the key {@link #FORCE_ENCODING_KEY}. Obviously this has to be set upstream from the filter, not
  * downstream.</p>
  *
- * <h3>Caveats</h3>
+ * <h3>Caveats and Notes</h3>
+ *
+ * <p>The filter requires Java 5 and J2EE 1.4 or better.</p>
  *
  * <p>Note that if this filter decides that it should try to compress the response, it <em>will</em> close the response
  * (whether or not it ends up compressing the response). No more can be written to the response after this filter has
  * been applied; this should never be necessary anyway. Put this filter ahead of any filters that might try to write to
  * the repsonse, since presumably you want this content compressed too anyway.</p>
+ *
+ * <p>If a {@link java.io.OutputStream#flush()} occurs before the filter has decided whether to compress or not,
+ * it will be forced into compression mode.</p>
+ *
+ * <p>The filter will not compress if the response sets <code>Cache-Control: no-transform</code> header in the
+ * response.</p>
+ *
+ * <p>The filter attempts to modify the <code>ETag</code> response header, if present, when compressing. This
+ * is because the compressed response must be considered a separate entity by caches. It simply appends, for
+ * example, "-gzip" to the ETag header value when compressing with gzip. This is not guaranteed to work
+ * in all containers, in the sense that some containers may not properly associated this ETag with the
+ * compressed content and simply return the response again.</p>
+ *
+ * <p>The filter always sets the <code>Vary</code> response header to indicate that a different response may be
+ * returned based on the <code>Accept-Encoding</code> header of the request.</p>
  *
  * @author Sean Owen
  * @since 1.0
