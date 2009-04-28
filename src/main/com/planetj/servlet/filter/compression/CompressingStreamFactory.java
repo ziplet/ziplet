@@ -38,7 +38,7 @@ import java.util.zip.ZipOutputStream;
  * <p>Implementations of this abstract class can add compression of a particular type to a given {@link OutputStream}.
  * They each return a {@link CompressingOutputStream}, which is just a thin wrapper on top of an {@link OutputStream} that
  * adds the ability to "finish" a stream (see {@link CompressingOutputStream}).</p>
- * <p/>
+ * 
  * <p>This class contains implementations based on several popular compression algorithms, such as gzip. For example,
  * the gzip implementation can decorate an {@link OutputStream} using an instance of {@link GZIPOutputStream} and in
  * that way add gzip compression to the stream.</p>
@@ -323,11 +323,11 @@ abstract class CompressingStreamFactory {
 			this.q = q;
 		}
 
-		private String getContentEncoding() {
+		String getContentEncoding() {
 			return contentEncoding;
 		}
 
-		private double getQ() {
+		double getQ() {
 			return q;
 		}
 

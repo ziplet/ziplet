@@ -3,7 +3,7 @@ Version 1.7 2009-05-01
   header value exceeds Integer.MAX_VALUE
 - Always set Vary header
 - Now attempts to set a modified ETag header when compressing
-- Now avoid compressing if Cache-Contro: no-transform is set
+- Now avoid compressing if Cache-Control: no-transform is set
 - Correctly handle multiple values in Content-Encoding header; other
   transforms are preserved
 - Now should support deflated requests

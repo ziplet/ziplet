@@ -212,7 +212,7 @@ public final class CompressingFilter implements Filter {
 	static final String VERSION_STRING = CompressingFilter.class.getName() + '/' + VERSION;
 
 	private CompressingFilterContext context;
-	private CompressingFilterLoggerImpl logger;
+	private CompressingFilterLogger logger;
 
 	public void init(FilterConfig config) throws ServletException {
 		assert config != null;

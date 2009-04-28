@@ -21,7 +21,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 /**
- * <p>Implementation of {@link javax.servlet.ServletInputStream} which will decompress data read from it.</p>
+ * <p>Implementation of {@link ServletInputStream} which will decompress data read from it.</p>
  *
  * @author Sean Owen
  * @since 1.6

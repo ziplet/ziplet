@@ -37,7 +37,7 @@ final class CompressingFilterContext {
 	private static final int DEFAULT_COMPRESSION_THRESHOLD = 1024;
 
 	private final boolean debug;
-	private final CompressingFilterLoggerImpl logger;
+	private final CompressingFilterLogger logger;
 	private final int compressionThreshold;
 	private final ServletContext servletContext;
 	private final CompressingFilterStats stats;
@@ -154,7 +154,7 @@ final class CompressingFilterContext {
 		return debug;
 	}
 
-	CompressingFilterLoggerImpl getLogger() {
+	CompressingFilterLogger getLogger() {
 		assert logger != null;
 		return logger;
 	}
