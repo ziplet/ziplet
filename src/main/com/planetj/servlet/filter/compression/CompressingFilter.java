@@ -34,13 +34,23 @@ import java.util.regex.Pattern;
  * written across the network from and to the client. As a {@link Filter}, this class can also be easily added to
  * any J2EE 1.3+ web application.</p>
  *
+ * <h3>Features</h3>
+ *
+ * <p>Why might you want to use this solution compared to others?</p>
+ *
+ * <ol>
+ *  <li>Little in-memory buffering</li>
+ *  <li>Handles compressed requests too</li>
+ *  <li>Selective compression based on content type, size, or user agent</li>
+ *  <li>Exposes compression statistics</li>
+ * </ol>
+ *
  * <h3>Installation</h3>
  *
  * <ol>
- * <li>Add the .jar file containing CompressingFilter to your web application's
+ * <li>Add the <code>pjl-comp-filter-XX.jar</code> file containing CompressingFilter to your web application's
  *  <code>WEB-INF/lib</code> directory.</li>
  * <li>Add the following entries to your <code>web.xml</code> deployment descriptor:<br/>
- *
  * <pre>
  * &lt;filter&gt;
  *  &lt;filter-name>CompressingFilter&lt;/filter-name&gt;
@@ -80,7 +90,9 @@ import java.util.regex.Pattern;
  * <code>excludeContentTypes</code> is too.</li>
  *
  * <li><strong>excludeContentTypes</strong> (optional): same as above, but
- * specifies a list of content types to <strong>not</strong> compress. Everything else will be compressed.</li>
+ * specifies a list of content types to <strong>not</strong> compress. Everything else will be compressed.
+ * However note that any content type that indicates a compressed format (e.g. application/gzip, application/x-compress)
+ * will not be compressed in any event.</li>
  *
  * <li><strong>includePathPatterns</strong> (optional): if specified, this is treated as a
  * comma-separated list of regular expressions (of the type accepted by {@link java.util.regex.Pattern}) which

@@ -1,4 +1,9 @@
-Version 1.7 2009-05-01
+Version 1.7
+- Now does not compress content types like application/gzip
+- Won't compress responses that already have a Content-Encoding
+  like gzip
+
+Version 1.7-rc1 2009-04-28
 - Attempt to accommodate very large responses whose Content-Length
   header value exceeds Integer.MAX_VALUE
 - Always set Vary header

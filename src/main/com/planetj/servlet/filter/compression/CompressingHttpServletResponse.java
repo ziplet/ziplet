@@ -39,6 +39,9 @@ final class CompressingHttpServletResponse extends HttpServletResponseWrapper {
 	static final String VARY_HEADER = "Vary";
 	private static final String X_COMPRESSED_BY_HEADER = "X-Compressed-By";
 
+  private static final String[] UNALLOWED_HEADERS =
+      {CACHE_CONTROL_HEADER, CONTENT_LENGTH_HEADER, CONTENT_ENCODING_HEADER, ETAG_HEADER, X_COMPRESSED_BY_HEADER};
+
 	private static final String COMPRESSED_BY_VALUE = CompressingFilter.VERSION_STRING;
 
 
@@ -131,17 +134,13 @@ final class CompressingHttpServletResponse extends HttpServletResponseWrapper {
       if (value.contains("no-transform")) {
         logger.logDebug("Aborting compression due to no-transform directive");
         noTransformSet = true;
-        if (compressing) {
-          try {
-            compressingSOS.abortCompression();
-          } catch (IOException ioe) {
-            // Can't throw this, hmm...
-            logger.log("Unexpected error while aborting compression due to no-transform directive", ioe);
-          }
-        }
+        maybeAbortCompression();
       }
     } else if (CONTENT_ENCODING_HEADER.equalsIgnoreCase(name)) {
 			savedContentEncoding = value;
+      if (!isCompressableEncoding(value)) {
+        maybeAbortCompression();
+      }
 		} else if (CONTENT_LENGTH_HEADER.equalsIgnoreCase(name)) {
 			// Not setContentLength(); we want to potentially accommodate a long value here
 			doSetContentLength(Long.parseLong(value));
@@ -158,6 +157,17 @@ final class CompressingHttpServletResponse extends HttpServletResponseWrapper {
 			httpResponse.setHeader(name, value);
 		}
 	}
+
+  private void maybeAbortCompression() {
+    if (compressing) {
+      try {
+        compressingSOS.abortCompression();
+      } catch (IOException ioe) {
+        // Can't throw this, hmm...
+        logger.log("Unexpected error while aborting compression", ioe);
+      }
+    }
+  }
 
   private void setETagHeader() {
     if (savedETag != null) {
@@ -247,12 +257,7 @@ final class CompressingHttpServletResponse extends HttpServletResponseWrapper {
 		if (!compressing) {
 			if (!contentTypeOK && compressingSOS != null) {
         logger.logDebug("Aborting compression since Content-Type is excluded: " + contentType);
-				try {
-					compressingSOS.abortCompression();
-				} catch (IOException ioe) {
-					// Can't throw this, hmm...
-					logger.log("Unexpected error while aborting compression due to unsupported content type", ioe);
-				}
+        maybeAbortCompression();
 			}
 			httpResponse.setContentType(contentType);
 		}
@@ -327,18 +332,21 @@ final class CompressingHttpServletResponse extends HttpServletResponseWrapper {
 	 * @return true if and only if header can be set directly by application
 	 */
 	private boolean isAllowedHeader(String header) {
-		boolean result =
-		    header == null ||
-		    !(CACHE_CONTROL_HEADER.equalsIgnoreCase(header) ||
-          CONTENT_LENGTH_HEADER.equalsIgnoreCase(header) ||
-		      CONTENT_ENCODING_HEADER.equalsIgnoreCase(header) ||
-          ETAG_HEADER.equalsIgnoreCase(header) ||
-		      X_COMPRESSED_BY_HEADER.equalsIgnoreCase(header));
-		if (!result && logger.isDebug()) {
+		boolean unallowed = header != null && equalsIgnoreCaseAny(header, UNALLOWED_HEADERS);
+		if (unallowed && logger.isDebug()) {
 			logger.logDebug("Header '" + header + "' cannot be set by application");
 		}
-		return result;
+		return !unallowed;
 	}
+
+  private static boolean equalsIgnoreCaseAny(String a, String... others) {
+    for (String other : others) {
+      if (a.equalsIgnoreCase(other)) {
+        return true;
+      }
+    }
+    return false;
+  }
 
 	private void flushWriter() {
 		if (printWriter != null) {
@@ -347,11 +355,14 @@ final class CompressingHttpServletResponse extends HttpServletResponseWrapper {
 	}
 
 	/**
-	 * Checks to see if the given content type should be compressed. This checks against the
+	 * <p>Checks to see if the given content type should be compressed. If the content type indicates it
+   * is already a compressed format (e.g. contains "gzip") then this wil return <code>false</code>.</p>
+   *
+   * <p>Otherwise this checks against the
 	 * <code>includeContentTypes</code> and <code>excludeContentTypes</code> filter init
    * parameters; if the former is set and the given content type is in that parameter's
    * list, or if the latter is set and the content type
-	 * is not in that list, then this method returns <code>true</code>.
+	 * is not in that list, then this method returns <code>true</code>.</p>
 	 *
 	 * @param contentType content type of response
 	 * @return true if and only if the given content type should be compressed
@@ -363,11 +374,30 @@ final class CompressingHttpServletResponse extends HttpServletResponseWrapper {
 			if (semicolonIndex >= 0) {
 				contentTypeOnly = contentType.substring(0, semicolonIndex);
 			}
-		}
+		} else {
+      return true;
+    }
 
+    for (String compressionEncoding : CompressingStreamFactory.ALL_COMPRESSION_ENCODINGS) {
+      if (contentTypeOnly.contains(compressionEncoding)) {
+        return false;
+      }
+    }
 		boolean isContained = context.getContentTypes().contains(contentTypeOnly);
 		return context.isIncludeContentTypes() ? isContained : !isContained;
 	}
+
+  private boolean isCompressableEncoding(String encoding) {
+    if (encoding == null) {
+      return true;
+    }
+    for (String compressionEncoding : CompressingStreamFactory.ALL_COMPRESSION_ENCODINGS) {
+      if (encoding.equals(compressionEncoding)) {
+        return false;
+      }
+    }
+    return true;
+  }
 
 	private CompressingServletOutputStream getCompressingServletOutputStream() throws IOException {
 		if (compressingSOS == null) {
@@ -405,6 +435,9 @@ final class CompressingHttpServletResponse extends HttpServletResponseWrapper {
 		}
     if (noTransformSet) {
       logger.logDebug("Will not compress since no-transform was specified");
+      return true;
+    }
+    if (!isCompressableEncoding(savedContentEncoding)) {
       return true;
     }
 		return false;
