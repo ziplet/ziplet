@@ -1,4 +1,4 @@
-Version 1.7
+Version 1.7 2009-05-11
 - Now does not compress content types like application/gzip
 - Won't compress responses that already have a Content-Encoding
   like gzip
