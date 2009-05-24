@@ -159,7 +159,7 @@ final class CompressingHttpServletResponse extends HttpServletResponseWrapper {
 	}
 
   private void maybeAbortCompression() {
-    if (compressing) {
+    if (compressingSOS != null) {
       try {
         compressingSOS.abortCompression();
       } catch (IOException ioe) {
@@ -220,7 +220,9 @@ final class CompressingHttpServletResponse extends HttpServletResponseWrapper {
     setCommonResponseHeaders();
 		if (compressing) {
 			setCompressionResponseHeaders();
-		}
+		} else {
+      setNonCompressionResponseHeaders();
+    }
 	}
 
 	@Override
@@ -248,19 +250,20 @@ final class CompressingHttpServletResponse extends HttpServletResponseWrapper {
 			savedContentLength = contentLength;
 			savedContentLengthSet = true;
 			logger.logDebug("Saving application-specified content length for later: " + contentLength);
+      if (compressingSOS != null && compressingSOS.isAborted()) {
+        httpResponse.setHeader(CONTENT_LENGTH_HEADER, String.valueOf(contentLength));        
+      }
 		}
 	}
 
 	@Override
 	public void setContentType(String contentType) {
 		contentTypeOK = isCompressableContentType(contentType);
-		if (!compressing) {
-			if (!contentTypeOK && compressingSOS != null) {
-        logger.logDebug("Aborting compression since Content-Type is excluded: " + contentType);
-        maybeAbortCompression();
-			}
-			httpResponse.setContentType(contentType);
-		}
+    httpResponse.setContentType(contentType);
+    if (!contentTypeOK && compressingSOS != null) {
+      logger.logDebug("Aborting compression since Content-Type is excluded: " + contentType);
+      maybeAbortCompression();
+    }
 	}
 
 	@Override
@@ -294,24 +297,19 @@ final class CompressingHttpServletResponse extends HttpServletResponseWrapper {
 		}
 	}
 
-	void rawStreamCommitted() {
-		assert !compressing;
-		logger.logDebug("Committing response without compression");
-		if (savedContentLengthSet) {
-			// setContentLength() takes an int; we're trying to accommodate the case where the
-			// content length exceeded Integer.MAX_VALUE. We saved it as a long, but can't send
-			// that to the underlying response's setContentLength() method unless it's not more
-			// than Integer.MAX_VALUE. If it is, we try to write it directly as a String to
-			// the header
-			if (savedContentLength <= (long) Integer.MAX_VALUE) {
-				httpResponse.setContentLength((int) savedContentLength);
-			} else {
-				httpResponse.setHeader(CONTENT_LENGTH_HEADER, String.valueOf(savedContentLength));
-			}
+  private void setNonCompressionResponseHeaders() {
+    if (savedContentLengthSet) {
+		  httpResponse.setHeader(CONTENT_LENGTH_HEADER, String.valueOf(savedContentLength));
 		}
 		if (savedContentEncoding != null) {
 			httpResponse.setHeader(CONTENT_ENCODING_HEADER, savedContentEncoding);
 		}
+  }
+
+	void rawStreamCommitted() {
+		assert !compressing;
+		logger.logDebug("Committing response without compression");
+		setNonCompressionResponseHeaders();
 	}
 
 	void switchToCompression() {
@@ -414,8 +412,6 @@ final class CompressingHttpServletResponse extends HttpServletResponseWrapper {
 			// Is there a reason we know compression will be used, already?
 			if (mustNotCompress()) {
 				compressingSOS.abortCompression();
-			} else if (mustCompress()) {
-				compressingSOS.engageCompression();
 			}
 		}
 
@@ -443,12 +439,4 @@ final class CompressingHttpServletResponse extends HttpServletResponseWrapper {
 		return false;
 	}
 
-	private boolean mustCompress() {
-		int threshold = context.getCompressionThreshold();
-		if (threshold <= 0 || (savedContentLengthSet && savedContentLength >= threshold)) {
-			logger.logDebug("Will begin compression immediately since page content length exceeds threshold");
-			return true;
-		}
-		return false;
-	}
 }

@@ -33,6 +33,7 @@ final class CompressingServletOutputStream extends ServletOutputStream {
 	private final CompressingFilterContext context;
 	private ThresholdOutputStream thresholdOutputStream;
 	private boolean closed;
+  private boolean aborted;
   private final CompressingFilterLogger logger;
 
 	CompressingServletOutputStream(OutputStream rawStream,
@@ -46,6 +47,7 @@ final class CompressingServletOutputStream extends ServletOutputStream {
 		this.context = context;
     this.logger = logger;
 		closed = false;
+    aborted = false;
 	}
 
 	@Override
@@ -74,10 +76,7 @@ final class CompressingServletOutputStream extends ServletOutputStream {
 
 	@Override
 	public void flush() throws IOException {
-		if (!closed) {
-			checkWriteState();
-			thresholdOutputStream.flush();
-		}
+		// do nothing actually
 	}
 
 	@Override
@@ -122,8 +121,12 @@ final class CompressingServletOutputStream extends ServletOutputStream {
 		// so that when it is we can invoke forceOutputStream1()
 		checkWriteState();
 		thresholdOutputStream.forceOutputStream1();
+    aborted = true;
 	}
 
+  boolean isAborted() {
+    return aborted;
+  }
 
 	private void checkWriteState() {
 		if (thresholdOutputStream == null) {

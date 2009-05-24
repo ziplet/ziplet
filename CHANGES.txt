@@ -1,3 +1,12 @@
+Version 1.7.1
+- Now, flush() will not force compression. This was simply causing
+  too many issues.
+- Compression threshold of 0 should now not force compression even
+  when, for instance, the content type is excluded from compression
+- Content-Type should be properly set even when compressing
+- Content-Length should be properly set in some cases where it was
+  not being set, even when not compressing
+
 Version 1.7 2009-05-11
 - Now does not compress content types like application/gzip
 - Won't compress responses that already have a Content-Encoding

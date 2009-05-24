@@ -87,9 +87,7 @@ public final class CompressingFilterResponseTest extends TestCase {
 	}
 
 	public void testSmallOutput() throws Exception {
-		// Eh, yeah this compresses even though it's small; the mock classes are calling
-		// flush() somewhere and forcing compression. Haven't tracked this down yet.
-		verifyOutput(SMALL_DOCUMENT, true);
+		verifyOutput(SMALL_DOCUMENT, false);
 	}
 
 	public void testBigOutput() throws Exception {
