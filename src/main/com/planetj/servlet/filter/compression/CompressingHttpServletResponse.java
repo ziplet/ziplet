@@ -385,7 +385,7 @@ final class CompressingHttpServletResponse extends HttpServletResponseWrapper {
 		return context.isIncludeContentTypes() ? isContained : !isContained;
 	}
 
-  private boolean isCompressableEncoding(String encoding) {
+  private static boolean isCompressableEncoding(String encoding) {
     if (encoding == null) {
       return true;
     }
@@ -433,10 +433,7 @@ final class CompressingHttpServletResponse extends HttpServletResponseWrapper {
       logger.logDebug("Will not compress since no-transform was specified");
       return true;
     }
-    if (!isCompressableEncoding(savedContentEncoding)) {
-      return true;
-    }
-		return false;
-	}
+    return !isCompressableEncoding(savedContentEncoding);
+  }
 
 }

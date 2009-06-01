@@ -75,7 +75,7 @@ final class CompressingServletOutputStream extends ServletOutputStream {
 	}
 
 	@Override
-	public void flush() throws IOException {
+	public void flush() {
 		// do nothing actually
 	}
 
