@@ -260,12 +260,6 @@ public final class CompressingFilter implements Filter {
 			}
 		}
 
-    // Is this the right place? also done in CompressingHttpServletResponse
-    if (chainResponse instanceof HttpServletResponse) {
-      ((HttpServletResponse) chainResponse).setHeader(
-          CompressingHttpServletResponse.VARY_HEADER, CompressingHttpServletResponse.ACCEPT_ENCODING_HEADER);
-    }
-
 		request.setAttribute(ALREADY_APPLIED_KEY, Boolean.TRUE);
 		chain.doFilter(chainRequest, chainResponse);
 

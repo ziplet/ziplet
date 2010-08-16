@@ -80,8 +80,7 @@ final class CompressingHttpServletResponse extends HttpServletResponseWrapper {
 		this.compressingStreamFactory = compressingStreamFactory;
 		this.context = context;
 		contentTypeOK = true;
-    setCommonResponseHeaders();
-	}
+ 	}
 
 	@Override
 	public ServletOutputStream getOutputStream() throws IOException {
@@ -203,7 +202,7 @@ final class CompressingHttpServletResponse extends HttpServletResponseWrapper {
 	}
 
 	@Override
-	public void flushBuffer() throws IOException {
+	public void flushBuffer() {
 		flushWriter(); // make sure nothing is buffered in the writer, if applicable
 		if (compressingSOS != null) {
 			compressingSOS.flush();
@@ -217,7 +216,6 @@ final class CompressingHttpServletResponse extends HttpServletResponseWrapper {
 			compressingSOS.reset();
 		}
 		httpResponse.reset();
-    setCommonResponseHeaders();
 		if (compressing) {
 			setCompressionResponseHeaders();
 		} else {
@@ -281,12 +279,9 @@ final class CompressingHttpServletResponse extends HttpServletResponseWrapper {
 		}
 	}
 
-  private void setCommonResponseHeaders() {
-    httpResponse.addHeader(VARY_HEADER, ACCEPT_ENCODING_HEADER);
-  }
-
 	private void setCompressionResponseHeaders() {
 		logger.logDebug("Setting compression-related headers");
+		httpResponse.addHeader(VARY_HEADER, ACCEPT_ENCODING_HEADER);
     String fullContentEncodingHeader = savedContentEncoding == null ?
                                        compressedContentEncoding :
                                        savedContentEncoding + ',' + compressedContentEncoding;
