@@ -320,9 +320,8 @@ public final class CompressingFilterResponseTest extends TestCase {
 		assertFalse(response.wasRedirectSent());
 		assertFalse(response.wasErrorSent());
 
-    assertTrue(response.containsHeader("Vary"));
-    
 		if (shouldCompress) {
+      assertTrue(response.containsHeader("Vary"));
 			byte[] expectedBytes = getCompressedOutput(output.getBytes(TEST_ENCODING));
 			// Since ServletTestModule makes a String out of the output according to ISO-8859-1 encoding,
 			// do the same for expected bytes and then compare. Don't use assertEquals(); you'll just see

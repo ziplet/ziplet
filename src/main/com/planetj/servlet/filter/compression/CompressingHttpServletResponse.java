@@ -36,7 +36,7 @@ final class CompressingHttpServletResponse extends HttpServletResponseWrapper {
 	private static final String CONTENT_LENGTH_HEADER = "Content-Length";
 	private static final String CONTENT_TYPE_HEADER = "Content-Type";
   private static final String ETAG_HEADER = "ETag";
-	static final String VARY_HEADER = "Vary";
+	private static final String VARY_HEADER = "Vary";
 	private static final String X_COMPRESSED_BY_HEADER = "X-Compressed-By";
 
   private static final String[] UNALLOWED_HEADERS =
@@ -105,16 +105,55 @@ final class CompressingHttpServletResponse extends HttpServletResponseWrapper {
 		return printWriter;
 	}
 
+  /**
+   * @see #setHeader(String, String)
+   */
 	@Override
 	public void addHeader(String name, String value) {
-		if (isAllowedHeader(name)) {
+    if (CACHE_CONTROL_HEADER.equalsIgnoreCase(name)) {
+      httpResponse.addHeader(CACHE_CONTROL_HEADER, value);
+      if (value.contains("no-transform")) {
+        logger.logDebug("Aborting compression due to no-transform directive");
+        noTransformSet = true;
+        maybeAbortCompression();
+      }
+    } else if (CONTENT_ENCODING_HEADER.equalsIgnoreCase(name)) {
+			savedContentEncoding = value;
+      if (!isCompressableEncoding(value)) {
+        maybeAbortCompression();
+      }
+		} else if (CONTENT_LENGTH_HEADER.equalsIgnoreCase(name)) {
+			// Not setContentLength(); we want to potentially accommodate a long value here
+			doSetContentLength(Long.parseLong(value));
+		} else if (CONTENT_TYPE_HEADER.equalsIgnoreCase(name)) {
+			setContentType(value);
+    } else if (ETAG_HEADER.equalsIgnoreCase(name)) {
+      // Later, when the container perhaps sets ETag, try to set a different value (just by
+      // appending "-gzip" for instance) to reflect that the body is not the same as the uncompressed
+      // version. Otherwise caches may incorrectly return the compressed version to a
+      // client that doesn't want it
+      savedETag = value;
+      setETagHeader();
+		} else if (isAllowedHeader(name)) {
 			httpResponse.addHeader(name, value);
 		}
 	}
 
+  /**
+   * @see #setIntHeader(String, int)
+   */
 	@Override
 	public void addIntHeader(String name, int value) {
-		if (isAllowedHeader(name)) {
+		if (CONTENT_LENGTH_HEADER.equalsIgnoreCase(name)) {
+			setContentLength(value);
+    } else if (ETAG_HEADER.equalsIgnoreCase(name)) {
+      // Later, when the container perhaps sets ETag, try to set a different value (just by
+      // appending "-gzip" for instance) to reflect that the body is not the same as the uncompressed
+      // version. Otherwise caches may incorrectly return the compressed version to a
+      // client that doesn't want it
+      savedETag = String.valueOf(value);
+      setETagHeader();
+		} else if (isAllowedHeader(name)) {
 			httpResponse.addIntHeader(name, value);
 		}
 	}
@@ -126,6 +165,9 @@ final class CompressingHttpServletResponse extends HttpServletResponseWrapper {
 		}
 	}
 
+  /**
+   * @see #addHeader(String, String)
+   */
 	@Override
 	public void setHeader(String name, String value) {
     if (CACHE_CONTROL_HEADER.equalsIgnoreCase(name)) {
@@ -178,6 +220,9 @@ final class CompressingHttpServletResponse extends HttpServletResponseWrapper {
     }
   }
 
+  /**
+   * @see #addIntHeader(String, int)
+   */
 	@Override
 	public void setIntHeader(String name, int value) {
 		if (CONTENT_LENGTH_HEADER.equalsIgnoreCase(name)) {
@@ -281,6 +326,11 @@ final class CompressingHttpServletResponse extends HttpServletResponseWrapper {
 
 	private void setCompressionResponseHeaders() {
 		logger.logDebug("Setting compression-related headers");
+    // Note: This is really not the correct way to handle "Vary". It should be set on all requests that
+    // are covered by the filter. It is only set on compressed requests in order to work around an IE6/7 issue:
+    // http://www.fiddler2.com/fiddler/perf/aboutvary.asp
+    // One day, this should be returned to its rightful place in CompressingFilter, where it should be applied
+    // if the response *could be compressed*, not *if it is compressed*
 		httpResponse.addHeader(VARY_HEADER, ACCEPT_ENCODING_HEADER);
     String fullContentEncodingHeader = savedContentEncoding == null ?
                                        compressedContentEncoding :
