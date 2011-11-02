@@ -220,6 +220,8 @@ public final class CompressingFilter implements Filter {
 	 */
 	public static final String COMPRESSED_KEY = "com.planetj.servlet.filter.compression.Compressed";
 
+  static final String VARY_HEADER = "Vary";
+
 	static final String VERSION = "1.7";
 	static final String VERSION_STRING = CompressingFilter.class.getName() + '/' + VERSION;
 
@@ -339,14 +341,6 @@ public final class CompressingFilter implements Filter {
 			logger.logDebug("Request for: '" + httpRequest.getRequestURI() + '\'');
 		}
 
-		String contentEncoding = CompressingStreamFactory.getBestContentEncoding(httpRequest);
-		assert contentEncoding != null;
-
-		if (CompressingStreamFactory.NO_ENCODING.equals(contentEncoding)) {
-			logger.logDebug("Compression not supported or declined by request");
-			return null;
-		}
-
 		String requestURI = httpRequest.getRequestURI();
 		if (!isCompressablePath(requestURI)) {
 			logger.logDebug("Compression disabled for path: " + requestURI);
@@ -358,6 +352,20 @@ public final class CompressingFilter implements Filter {
 			logger.logDebug("Compression disabled for User-Agent: " + userAgent);
 			return null;
 		}
+
+		// The "Vary" header must be applied if the response *could be compressed*, not *if it is compressed*.
+		// So we have to set it here as we now know the request is allowed by the filter-mapping (web.xml)
+		// and by the path and user-agent patterns (above). It may or may not be compressed (depending
+		// on the request "Accept-Encoding" header, below) - this is why we have to add the Vary Header now:
+		setVaryHeader(httpResponse);
+
+    String contentEncoding = CompressingStreamFactory.getBestContentEncoding(httpRequest);
+    assert contentEncoding != null;
+
+    if (CompressingStreamFactory.NO_ENCODING.equals(contentEncoding)) {
+      logger.logDebug("Compression not supported or declined by request");
+      return null;
+    }
 
 		if (logger.isDebug()) {
 			logger.logDebug("Compression supported; using content encoding '" + contentEncoding + '\'');
@@ -371,6 +379,34 @@ public final class CompressingFilter implements Filter {
 		                                          contentEncoding,
 		                                          context);
 	}
+
+  /**
+ 	 * <p>Adds the "Vary" header; must be applied if the response <b>could be compressed</b>,
+ 	 * not <b>if it is compressed</b>.</p>
+ 	 *
+ 	 * <p>This is necessary to make sure the response is not cached (e.g. by Web proxies or
+ 	 * Squid Reverse Proxy setups) as the content depends on the "Accept-Encoding" header
+ 	 * of the client browser.</p>
+ 	 */
+ 	void setVaryHeader(HttpServletResponse httpResponse) {
+    // Note: There is an IE6/7 issue with the "Vary" header:
+    //     http://www.fiddler2.com/fiddler/perf/aboutvary.asp
+    //
+    // But setting the "Vary" header if the response *could be compressed*
+    // (as it is done here) should not hurt as IE6/7 will send a "Accept-Encoding"
+    // header so that the response *will be compressed*, and the IE6/7 issue
+    // does not apply for compressed responses (from the above URL):
+    //     IE6: will ignore the Vary header entirely if the response was delivered with HTTP Compression.
+    //     IE7: WinINET will remove the Vary: Accept-Encoding header if it decompressed the response.
+    //          Therefore, you should only send a Vary: Accept-Encoding header when you have
+    //          compressed the content (e.g. Content-Encoding: gzip).
+    if (logger.isDebug()) {
+      logger.logDebug("Setting Vary Header because the response *could be compressed*. " +
+                      VARY_HEADER + " : " + CompressingHttpServletResponse.ACCEPT_ENCODING_HEADER);
+    }
+ 	  httpResponse.addHeader(VARY_HEADER, CompressingHttpServletResponse.ACCEPT_ENCODING_HEADER);
+  }
+
 
 	public void destroy() {
 		logger.log("CompressingFilter is being destroyed...");

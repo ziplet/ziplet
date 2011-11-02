@@ -36,7 +36,6 @@ final class CompressingHttpServletResponse extends HttpServletResponseWrapper {
 	private static final String CONTENT_LENGTH_HEADER = "Content-Length";
 	private static final String CONTENT_TYPE_HEADER = "Content-Type";
   private static final String ETAG_HEADER = "ETag";
-	private static final String VARY_HEADER = "Vary";
 	private static final String X_COMPRESSED_BY_HEADER = "X-Compressed-By";
 
   private static final String[] UNALLOWED_HEADERS =
@@ -326,12 +325,6 @@ final class CompressingHttpServletResponse extends HttpServletResponseWrapper {
 
 	private void setCompressionResponseHeaders() {
 		logger.logDebug("Setting compression-related headers");
-    // Note: This is really not the correct way to handle "Vary". It should be set on all requests that
-    // are covered by the filter. It is only set on compressed requests in order to work around an IE6/7 issue:
-    // http://www.fiddler2.com/fiddler/perf/aboutvary.asp
-    // One day, this should be returned to its rightful place in CompressingFilter, where it should be applied
-    // if the response *could be compressed*, not *if it is compressed*
-		httpResponse.addHeader(VARY_HEADER, ACCEPT_ENCODING_HEADER);
     String fullContentEncodingHeader = savedContentEncoding == null ?
                                        compressedContentEncoding :
                                        savedContentEncoding + ',' + compressedContentEncoding;

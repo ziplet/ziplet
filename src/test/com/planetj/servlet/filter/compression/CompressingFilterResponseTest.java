@@ -199,6 +199,7 @@ public final class CompressingFilterResponseTest extends TestCase {
 		//assertEquals(302, response.getStatusCode());
 		assertTrue(response.wasRedirectSent());
 		assertFalse(response.wasErrorSent());
+    assertTrue(response.containsHeader(CompressingFilter.VARY_HEADER));
 	}
 
 	public void testFlush() {
@@ -219,6 +220,7 @@ public final class CompressingFilterResponseTest extends TestCase {
 		assertEquals(HttpServletResponse.SC_OK, response.getStatusCode());
 		assertFalse(response.wasRedirectSent());
 		assertFalse(response.wasErrorSent());
+    assertTrue(response.containsHeader(CompressingFilter.VARY_HEADER));
 	}
 
 	public void testClose() {
@@ -240,6 +242,7 @@ public final class CompressingFilterResponseTest extends TestCase {
 		assertFalse(response.wasErrorSent());
 		assertEquals(SMALL_DOCUMENT, module.getOutput());
 		assertNull(module.getRequestAttribute(CompressingFilter.COMPRESSED_KEY));
+    assertTrue(response.containsHeader(CompressingFilter.VARY_HEADER));
 	}
 
 	public void testSpuriousFlushClose() {
@@ -263,6 +266,7 @@ public final class CompressingFilterResponseTest extends TestCase {
 		assertFalse(response.wasErrorSent());
 		assertEquals(SMALL_DOCUMENT, module.getOutput());
 		assertNull(module.getRequestAttribute(CompressingFilter.COMPRESSED_KEY));
+    assertTrue(response.containsHeader(CompressingFilter.VARY_HEADER));
 	}
 
 	public void testNoGzipOutput() {
@@ -296,6 +300,7 @@ public final class CompressingFilterResponseTest extends TestCase {
 
 		assertFalse(response.containsHeader("Content-Encoding"));
 		assertFalse(response.containsHeader("X-Compressed-By"));
+    assertTrue(response.containsHeader(CompressingFilter.VARY_HEADER));
 	}
 
 	private void verifyOutput(final String output, boolean shouldCompress) throws IOException {
