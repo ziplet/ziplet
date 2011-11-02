@@ -48,9 +48,9 @@ import java.util.regex.Pattern;
  * <h3>Installation</h3>
  *
  * <ol>
- * <li>Add the <code>pjl-comp-filter-XX.jar</code> file containing CompressingFilter to your web application's
- *  <code>WEB-INF/lib</code> directory.</li>
- * <li>Add the following entries to your <code>web.xml</code> deployment descriptor:<br/>
+ * <li>Add the {@code pjl-comp-filter-XX.jar} file containing CompressingFilter to your web application's
+ *  {@code WEB-INF/lib} directory.</li>
+ * <li>Add the following entries to your {@code web.xml} deployment descriptor:<br/>
  * <pre>
  * &lt;filter&gt;
  *  &lt;filter-name>CompressingFilter&lt;/filter-name&gt;
@@ -74,7 +74,7 @@ import java.util.regex.Pattern;
  * set to "true", additional debug information will be written to the servlet log. Defaults to false.</li>
  *
  * <li><strong>compressionThreshold</strong> (optional): sets the size of the smallest response that will be compressed,
- * in bytes. That is, if less than <code>compressionThreshold</code> bytes are written to the response, it will not be
+ * in bytes. That is, if less than {@code compressionThreshold} bytes are written to the response, it will not be
  * compressed and the response will go to the client unmodified. If 0, compression always begins immediately.
  * Defaults to 1024.</li>
  *
@@ -82,12 +82,12 @@ import java.util.regex.Pattern;
  * Defaults to false.</li>
  *
  * <li><strong>includeContentTypes</strong> (optional): if specified, this is treated as a
- * comma-separated list of content types (e.g. <code>text/html,text/xml</code>). The filter will attempt to only
+ * comma-separated list of content types (e.g. {@code text/html,text/xml}). The filter will attempt to only
  * compress responses which specify one of these values as its content type, for example via {@link
  * HttpServletResponse#setContentType(String)}. Note that the filter does not know the response content type at the time
  * it is applied, and so must apply itself and later attempt to disable compression when content type has been set. This
  * will fail if the response has already been committed. Also note that this parameter cannot be specified if
- * <code>excludeContentTypes</code> is too.</li>
+ * {@code excludeContentTypes} is too.</li>
  *
  * <li><strong>excludeContentTypes</strong> (optional): same as above, but
  * specifies a list of content types to <strong>not</strong> compress. Everything else will be compressed.
@@ -95,27 +95,27 @@ import java.util.regex.Pattern;
  * will not be compressed in any event.</li>
  *
  * <li><strong>includePathPatterns</strong> (optional): if specified, this is treated as a
- * comma-separated list of regular expressions (of the type accepted by {@link java.util.regex.Pattern}) which
+ * comma-separated list of regular expressions (of the type accepted by {@link Pattern}) which
  * match exactly those paths which should be compressed by this filter. Anything else will not be compressed. One
  * can also merely apply the filter to a subset of all URIs served by the web application using standard
- * <code>filter-mapping</code> elements in <code>web.xml</code>; this element provides more fine-grained control
+ * {@code filter-mapping} elements in {@code web.xml}; this element provides more fine-grained control
  * for when that mechanism is insufficient. "Paths" here means values returned by
- * {@link javax.servlet.http.HttpServletRequest#getRequestURI()}. Note that
+ * {@link HttpServletRequest#getRequestURI()}. Note that
  * the regex must match the filename exactly; pattern "static" does <strong>not</strong> match everything containing
- * the string "static. Use ".*static.*" for that, for example. This cannot be specified if <code>excludeFileTypes</code>
+ * the string "static. Use ".*static.*" for that, for example. This cannot be specified if {@code excludeFileTypes}
  * is too.</li>
  *
  * <li><strong>excludePathPatterns</strong> (optional): same as above, but specifies a list of patterns which match
  * paths that should <strong>not</strong> be compressed. Everything else will be compressed.</li>
  *
- * <li><strong>includeUserAgentPatterns</strong> (optional): Like <code>includePathPatterns</code>. Only requests
- * with <code>User-Agent</code> headers whose value matches one of these regular expressions will be compressed.
- * Can't be specified if <code>excludeUserAgentPatterns</code> is too.</li>
+ * <li><strong>includeUserAgentPatterns</strong> (optional): Like {@code includePathPatterns}. Only requests
+ * with {@code User-Agent} headers whose value matches one of these regular expressions will be compressed.
+ * Can't be specified if {@code excludeUserAgentPatterns} is too.</li>
  *
- * <li><strong>excludeUserAgentPatterns</strong> (optional): as above, requests whose <code>User-Agent</code> header
+ * <li><strong>excludeUserAgentPatterns</strong> (optional): as above, requests whose {@code User-Agent} header
  * matches one of these patterns will not be compressed.</li>
  *
- * <li><strong>javaUtilLogger</strong> (optional): if specified, the named <code>java.util.logging.Logger</code>
+ * <li><strong>javaUtilLogger</strong> (optional): if specified, the named {@code java.util.logging.Logger}
  * will also receive log messages from this filter.</li>
  *
  * <li><strong>jakartaCommonsLogger</strong> (optional): if specified the named Jakarta Commons Log will
@@ -123,7 +123,7 @@ import java.util.regex.Pattern;
  *
  * </ul>
  *
- * <p>These values are configured in <code>web.xml</code> as well with init-param elements:<br/>
+ * <p>These values are configured in {@code web.xml} as well with init-param elements:<br/>
  * <pre>
  * &lt;filter&gt;
  *  &lt;filter-name>CompressingFilter&lt;/filter-name&gt;
@@ -183,17 +183,17 @@ import java.util.regex.Pattern;
  * <p>If a {@link java.io.OutputStream#flush()} occurs before the filter has decided whether to compress or not,
  * it will be forced into compression mode.</p>
  *
- * <p>The filter will not compress if the response sets <code>Cache-Control: no-transform</code> header in the
+ * <p>The filter will not compress if the response sets {@code Cache-Control: no-transform} header in the
  * response.</p>
  *
- * <p>The filter attempts to modify the <code>ETag</code> response header, if present, when compressing. This
+ * <p>The filter attempts to modify the {@code ETag} response header, if present, when compressing. This
  * is because the compressed response must be considered a separate entity by caches. It simply appends, for
  * example, "-gzip" to the ETag header value when compressing with gzip. This is not guaranteed to work
  * in all containers, in the sense that some containers may not properly associated this ETag with the
  * compressed content and simply return the response again.</p>
  *
- * <p>The filter always sets the <code>Vary</code> response header to indicate that a different response may be
- * returned based on the <code>Accept-Encoding</code> header of the request.</p>
+ * <p>The filter always sets the {@code Vary} response header to indicate that a different response may be
+ * returned based on the {@code Accept-Encoding} header of the request.</p>
  *
  * @author Sean Owen
  * @since 1.0
@@ -377,14 +377,14 @@ public final class CompressingFilter implements Filter {
 	}
 
 	/**
-	 * Checks to see if the given path should be compressed. This checks against the <code>includePathPatterns</code>
-	 * and <code>excludePathPatterns</code> filter init parameters; if the former is set and the given path matches
-	 * a regular expression in that parameter's list, or if the latter is set and the path does not match, then
-	 * this method returns <code>true</code>.
-	 *
-	 * @param path request path
-	 * @return true if and only if the path should be compressed
-	 */
+   * Checks to see if the given path should be compressed. This checks against the {@code includePathPatterns}
+   * and {@code excludePathPatterns} filter init parameters; if the former is set and the given path matches
+   * a regular expression in that parameter's list, or if the latter is set and the path does not match, then
+   * this method returns {@code true}.
+   *
+   * @param path request path
+   * @return true if and only if the path should be compressed
+   */
 	private boolean isCompressablePath(String path) {
 		if (path != null) {
 			for (Pattern pattern : context.getPathPatterns()) {

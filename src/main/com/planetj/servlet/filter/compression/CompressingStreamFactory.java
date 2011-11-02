@@ -27,6 +27,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 import java.util.zip.DeflaterOutputStream;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
@@ -102,8 +103,9 @@ abstract class CompressingStreamFactory {
 	 * Maps content type String to appropriate implementation of {@link CompressingStreamFactory}.
 	 */
 	private static final Map<String, CompressingStreamFactory> factoryMap;
+  private static final Pattern COMMA = Pattern.compile(",");
 
-	static {
+  static {
 		Map<String, CompressingStreamFactory> temp = new HashMap<String, CompressingStreamFactory>(11);
 		temp.put(GZIP_ENCODING, GZIP_CSF);
 		temp.put(X_GZIP_ENCODING, GZIP_CSF);
@@ -159,10 +161,10 @@ abstract class CompressingStreamFactory {
 	}
 
 	/**
-	 * Returns the {@link CompressingStreamFactory} instance associated to the given content encoding.
+	 * Returns the instance associated to the given content encoding.
 	 *
 	 * @param contentEncoding content encoding (e.g. "gzip")
-	 * @return {@link CompressingStreamFactory} for content encoding
+	 * @return instance for content encoding
 	 */
 	static CompressingStreamFactory getFactoryForContentEncoding(String contentEncoding) {
 		assert factoryMap.containsKey(contentEncoding);
@@ -245,7 +247,7 @@ abstract class CompressingStreamFactory {
 		Collection<String> unacceptableEncodings = new HashSet<String>(3);
 		boolean willAcceptAnything = false;
 
-		for (String token : acceptEncodingHeader.split(",")) {
+		for (String token : COMMA.split(acceptEncodingHeader)) {
 			ContentEncodingQ contentEncodingQ = parseContentEncodingQ(token);
 			String contentEncoding = contentEncodingQ.getContentEncoding();
 			double q = contentEncodingQ.getQ();

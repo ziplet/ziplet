@@ -46,8 +46,10 @@ public final class JavaUtilLoggingImpl implements CompressingFilterLogger {
 	}
 
 	public void logDebug(String message) {
-		logger.fine(message);
-	}
+    if (logger.isLoggable(Level.FINE)) {
+      logger.fine(message);
+    }
+  }
 
 	public void logDebug(String message, Throwable t) {
 		logger.log(Level.FINE, message, t);

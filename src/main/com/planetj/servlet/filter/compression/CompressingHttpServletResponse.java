@@ -398,18 +398,18 @@ final class CompressingHttpServletResponse extends HttpServletResponseWrapper {
 	}
 
 	/**
-	 * <p>Checks to see if the given content type should be compressed. If the content type indicates it
-   * is already a compressed format (e.g. contains "gzip") then this wil return <code>false</code>.</p>
+   * <p>Checks to see if the given content type should be compressed. If the content type indicates it
+   * is already a compressed format (e.g. contains "gzip") then this wil return {@code false}.</p>
    *
    * <p>Otherwise this checks against the
-	 * <code>includeContentTypes</code> and <code>excludeContentTypes</code> filter init
+   * {@code includeContentTypes} and {@code excludeContentTypes} filter init
    * parameters; if the former is set and the given content type is in that parameter's
    * list, or if the latter is set and the content type
-	 * is not in that list, then this method returns <code>true</code>.</p>
-	 *
-	 * @param contentType content type of response
-	 * @return true if and only if the given content type should be compressed
-	 */
+   * is not in that list, then this method returns {@code true}.</p>
+   *
+   * @param contentType content type of response
+   * @return true if and only if the given content type should be compressed
+   */
 	private boolean isCompressableContentType(String contentType) {
 		String contentTypeOnly = contentType;
 		if (contentType != null) {

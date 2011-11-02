@@ -35,8 +35,9 @@ import java.util.regex.Pattern;
 final class CompressingFilterContext {
 
 	private static final int DEFAULT_COMPRESSION_THRESHOLD = 1024;
+  private static final Pattern COMMA = Pattern.compile(",");
 
-	private final boolean debug;
+  private final boolean debug;
 	private final CompressingFilterLogger logger;
 	private final int compressionThreshold;
 	private final ServletContext servletContext;
@@ -238,7 +239,7 @@ final class CompressingFilterContext {
 			return Collections.emptyList();
 		}
 		List<String> contentTypes = new ArrayList<String>(5);
-		for (String contentType : contentTypesString.split(",")) {
+		for (String contentType : COMMA.split(contentTypesString)) {
 			if (contentType.length() > 0) {
 				contentTypes.add(contentType);
 			}
@@ -251,7 +252,7 @@ final class CompressingFilterContext {
 			return Collections.emptyList();
 		}
 		List<Pattern> patterns = new ArrayList<Pattern>(5);
-		for (String pattern : patternsString.split(",")) {
+		for (String pattern : COMMA.split(patternsString)) {
 			if (pattern.length() > 0) {
 				patterns.add(Pattern.compile(pattern));
 			}
