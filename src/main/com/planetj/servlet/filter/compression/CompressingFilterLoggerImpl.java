@@ -89,7 +89,7 @@ final class CompressingFilterLoggerImpl implements CompressingFilterLogger {
 
 	public void logDebug(String message) {
 		if (debug) {
-			log(message);
+      servletContext.log(MESSAGE_PREFIX + message);
 			if (delegate != null) {
 				delegate.logDebug(message);
 			}
@@ -98,7 +98,7 @@ final class CompressingFilterLoggerImpl implements CompressingFilterLogger {
 
 	public void logDebug(String message, Throwable t) {
 		if (debug) {
-			log(message, t);
+      servletContext.log(MESSAGE_PREFIX + message, t);
 			if (delegate != null) {
 				delegate.logDebug(message, t);
 			}
