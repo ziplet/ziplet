@@ -13,13 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.planetj.servlet.filter.compression;
 
 public interface CompressingFilterLogger {
-	void log(String message);
-	void log(String message, Throwable t);
-	void logDebug(String message);
-	void logDebug(String message, Throwable t);
-  boolean isDebug();
+
+    void log(String message);
+
+    void log(String message, Throwable t);
+
+    void logDebug(String message);
+
+    void logDebug(String message, Throwable t);
+
+    boolean isDebug();
 }

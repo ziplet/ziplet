@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.planetj.servlet.filter.compression;
 
 import javax.servlet.ServletInputStream;
@@ -28,116 +27,113 @@ import java.util.Collection;
 import java.util.Enumeration;
 
 /**
- * <p>Implementation of {@link HttpServletRequest} which can decompress request bodies that have
- * been compressed.</p>
+ * <p>Implementation of {@link HttpServletRequest} which can decompress request
+ * bodies that have been compressed.</p>
  *
  * @author Sean Owen
  * @since 1.6
  */
 final class CompressedHttpServletRequest extends HttpServletRequestWrapper {
 
-	private final ServletRequest httpRequest;
-	private final CompressingStreamFactory compressingStreamFactory;
-	private final CompressingFilterContext context;
-	private CompressingServletInputStream compressedSIS;
-	private BufferedReader bufferedReader;
-	private boolean isGetInputStreamCalled;
-	private boolean isGetReaderCalled;
+    private final ServletRequest httpRequest;
+    private final CompressingStreamFactory compressingStreamFactory;
+    private final CompressingFilterContext context;
+    private CompressingServletInputStream compressedSIS;
+    private BufferedReader bufferedReader;
+    private boolean isGetInputStreamCalled;
+    private boolean isGetReaderCalled;
 
-	CompressedHttpServletRequest(HttpServletRequest httpRequest,
-	                             CompressingStreamFactory compressingStreamFactory,
-	                             CompressingFilterContext context) {
-		super(httpRequest);
-		this.httpRequest = httpRequest;
-		this.compressingStreamFactory = compressingStreamFactory;
-		this.context = context;
-	}
+    CompressedHttpServletRequest(HttpServletRequest httpRequest,
+            CompressingStreamFactory compressingStreamFactory,
+            CompressingFilterContext context) {
+        super(httpRequest);
+        this.httpRequest = httpRequest;
+        this.compressingStreamFactory = compressingStreamFactory;
+        this.context = context;
+    }
 
+    @Override
+    public ServletInputStream getInputStream() throws IOException {
+        if (isGetReaderCalled) {
+            throw new IllegalStateException("getReader() has already been called");
+        }
+        isGetInputStreamCalled = true;
+        return getCompressingServletInputStream();
+    }
 
-	@Override
-	public ServletInputStream getInputStream() throws IOException {
-		if (isGetReaderCalled) {
-			throw new IllegalStateException("getReader() has already been called");
-		}
-		isGetInputStreamCalled = true;
-		return getCompressingServletInputStream();
-	}
+    @Override
+    public BufferedReader getReader() throws IOException {
+        if (isGetInputStreamCalled) {
+            throw new IllegalStateException("getInputStream() has already been called");
+        }
+        isGetReaderCalled = true;
+        if (bufferedReader == null) {
+            bufferedReader = new BufferedReader(new InputStreamReader(getCompressingServletInputStream(),
+                    getCharacterEncoding()));
+        }
+        return bufferedReader;
+    }
 
-	@Override
-	public BufferedReader getReader() throws IOException {
-		if (isGetInputStreamCalled) {
-			throw new IllegalStateException("getInputStream() has already been called");
-		}
-		isGetReaderCalled = true;
-		if (bufferedReader == null) {
-			bufferedReader = new BufferedReader(new InputStreamReader(getCompressingServletInputStream(),
-					                                                  getCharacterEncoding()));
-		}
-		return bufferedReader;
-	}
+    private CompressingServletInputStream getCompressingServletInputStream() throws IOException {
+        if (compressedSIS == null) {
+            compressedSIS = new CompressingServletInputStream(httpRequest.getInputStream(),
+                    compressingStreamFactory,
+                    context);
+        }
+        return compressedSIS;
+    }
 
-	private CompressingServletInputStream getCompressingServletInputStream() throws IOException {
-		if (compressedSIS == null) {
-			compressedSIS = new CompressingServletInputStream(httpRequest.getInputStream(),
-			                                                  compressingStreamFactory,
-					                                          context);
-		}
-		return compressedSIS;
-	}
+    // Header-related methods -- need to make sure we consume and hide the
+    // Content-Encoding header. What a lot of work to get that done:
+    private static boolean isFilteredHeader(String headerName) {
+        // Filter Content-Encoding since we're handing decompression ourselves;
+        // filter Accept-Encoding so that downstream services don't try to compress too
+        return CompressingHttpServletResponse.CONTENT_ENCODING_HEADER.equalsIgnoreCase(headerName)
+                || CompressingHttpServletResponse.ACCEPT_ENCODING_HEADER.equalsIgnoreCase(headerName);
+    }
 
-	// Header-related methods -- need to make sure we consume and hide the
-	// Content-Encoding header. What a lot of work to get that done:
+    @Override
+    public String getHeader(String header) {
+        return isFilteredHeader(header) ? null : super.getHeader(header);
+    }
 
-	private static boolean isFilteredHeader(String headerName) {
-		// Filter Content-Encoding since we're handing decompression ourselves;
-		// filter Accept-Encoding so that downstream services don't try to compress too
-		return CompressingHttpServletResponse.CONTENT_ENCODING_HEADER.equalsIgnoreCase(headerName) ||
-			   CompressingHttpServletResponse.ACCEPT_ENCODING_HEADER.equalsIgnoreCase(headerName);
-	}
+    @Override
+    public Enumeration<?> getHeaders(String header) {
+        Enumeration<?> original = super.getHeaders(header);
+        if (original == null) {
+            return null; // match container's behavior exactly in this case
+        }
+        return isFilteredHeader(header) ? EmptyEnumeration.getInstance() : original;
+    }
 
-	@Override
-	public String getHeader(String header) {
-		return isFilteredHeader(header) ? null : super.getHeader(header);
-	}
+    @Override
+    public long getDateHeader(String header) {
+        return isFilteredHeader(header) ? -1L : super.getDateHeader(header);
+    }
 
-	@Override
-	public Enumeration<?> getHeaders(String header) {
-		Enumeration<?> original = super.getHeaders(header);
-		if (original == null) {
-			return null; // match container's behavior exactly in this case
-		}
-		return isFilteredHeader(header) ? EmptyEnumeration.getInstance() : original;
-	}
+    @Override
+    public int getIntHeader(String header) {
+        return isFilteredHeader(header) ? -1 : super.getIntHeader(header);
+    }
 
-	@Override
-	public long getDateHeader(String header) {
-		return isFilteredHeader(header) ? -1L : super.getDateHeader(header);
-	}
+    @Override
+    public Enumeration<?> getHeaderNames() {
+        Enumeration<?> original = super.getHeaderNames();
+        if (original == null) {
+            return null; // match container's behavior exactly in this case
+        }
+        Collection<String> headerNames = new ArrayList<String>();
+        while (original.hasMoreElements()) {
+            String headerName = (String) original.nextElement();
+            if (!isFilteredHeader(headerName)) {
+                headerNames.add(headerName);
+            }
+        }
+        return new IteratorEnumeration(headerNames.iterator());
+    }
 
-	@Override
-	public int getIntHeader(String header) {
-		return isFilteredHeader(header) ? -1 : super.getIntHeader(header);
-	}
-
-	@Override
-	public Enumeration<?> getHeaderNames() {
-		Enumeration<?> original = super.getHeaderNames();
-		if (original == null) {
-			return null; // match container's behavior exactly in this case
-		}
-		Collection<String> headerNames = new ArrayList<String>();
-		while (original.hasMoreElements()) {
-			String headerName = (String) original.nextElement();
-			if (!isFilteredHeader(headerName)) {
-				headerNames.add(headerName);
-			}
-		}
-		return new IteratorEnumeration(headerNames.iterator());
-	}
-
-	@Override
-	public String toString() {
-		return "CompressedHttpServletRequest";
-	}
-
+    @Override
+    public String toString() {
+        return "CompressedHttpServletRequest";
+    }
 }

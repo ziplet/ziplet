@@ -13,24 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.planetj.servlet.filter.compression;
 
 import java.io.IOException;
 import java.io.OutputStream;
 
 /**
- * Implementations of this interface encapsulate an {@link OutputStream} that compresses data written to it. This
- * includes the compressing {@link OutputStream} itself (see {@link #getCompressingOutputStream()}), and the ability to
- * tell the stream that no more data will be written, so that the stream may write any trailing data needed by the
- * compression algorithm (see {@link #finish()}).
+ * Implementations of this interface encapsulate an {@link OutputStream} that
+ * compresses data written to it. This includes the compressing
+ * {@link OutputStream} itself (see {@link #getCompressingOutputStream()}), and
+ * the ability to tell the stream that no more data will be written, so that the
+ * stream may write any trailing data needed by the compression algorithm (see
+ * {@link #finish()}).
  *
  * @author Sean Owen
  */
 interface CompressingOutputStream {
 
-	OutputStream getCompressingOutputStream();
+    OutputStream getCompressingOutputStream();
 
-	void finish() throws IOException;
-
+    void finish() throws IOException;
 }

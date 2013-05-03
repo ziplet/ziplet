@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.planetj.servlet.filter.compression;
 
 import junit.framework.TestCase;
@@ -21,7 +20,8 @@ import junit.framework.TestCase;
 import java.lang.reflect.Constructor;
 
 /**
- * Tests {@link com.planetj.servlet.filter.compression.JakartaCommonsLoggingImpl} and
+ * Tests
+ * {@link com.planetj.servlet.filter.compression.JakartaCommonsLoggingImpl} and
  * {@link com.planetj.servlet.filter.compression.JavaUtilLoggingImpl}.
  *
  * @author Sean Owen
@@ -29,19 +29,18 @@ import java.lang.reflect.Constructor;
  */
 public final class LogTest extends TestCase {
 
-	public void testJakartaImpl() throws Exception {
-		Class<?> delegateClass =
-			Class.forName("com.planetj.servlet.filter.compression.JakartaCommonsLoggingImpl");
-		Constructor<?> constructor = delegateClass.getConstructor(String.class);
-		// Verify this works
-		constructor.newInstance("foo");
-	}
+    public void testJakartaImpl() throws Exception {
+        Class<?> delegateClass =
+                Class.forName("com.planetj.servlet.filter.compression.JakartaCommonsLoggingImpl");
+        Constructor<?> constructor = delegateClass.getConstructor(String.class);
+        // Verify this works
+        constructor.newInstance("foo");
+    }
 
-	public void testJavaUtiImpl() throws Exception {
-		Class<?> delegateClass = Class.forName("com.planetj.servlet.filter.compression.JavaUtilLoggingImpl");
-		Constructor<?> constructor = delegateClass.getConstructor(String.class);
-		// Verify this works
-		constructor.newInstance("foo");
-	}
-
+    public void testJavaUtiImpl() throws Exception {
+        Class<?> delegateClass = Class.forName("com.planetj.servlet.filter.compression.JavaUtilLoggingImpl");
+        Constructor<?> constructor = delegateClass.getConstructor(String.class);
+        // Verify this works
+        constructor.newInstance("foo");
+    }
 }

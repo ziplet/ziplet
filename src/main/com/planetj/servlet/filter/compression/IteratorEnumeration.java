@@ -13,40 +13,39 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.planetj.servlet.filter.compression;
 
 import java.util.Enumeration;
 import java.util.Iterator;
 
 /**
- * <p>An {@link java.util.Enumeration} which enumerates the contents of an {@link Iterator}.</p>
+ * <p>An {@link java.util.Enumeration} which enumerates the contents of an
+ * {@link Iterator}.</p>
  *
  * @author Sean Owen
  * @since 1.6
  */
 final class IteratorEnumeration implements Enumeration<Object> {
 
-	private final Iterator<?> iterator;
+    private final Iterator<?> iterator;
 
-	IteratorEnumeration(Iterator<?> iterator) {
-		if (iterator == null) {
-			throw new IllegalArgumentException();
-		}
-		this.iterator = iterator;
-	}
+    IteratorEnumeration(Iterator<?> iterator) {
+        if (iterator == null) {
+            throw new IllegalArgumentException();
+        }
+        this.iterator = iterator;
+    }
 
-	public boolean hasMoreElements() {
-		return iterator.hasNext();
-	}
+    public boolean hasMoreElements() {
+        return iterator.hasNext();
+    }
 
-	public Object nextElement() {
-		return iterator.next();
-	}
+    public Object nextElement() {
+        return iterator.next();
+    }
 
-	@Override
-	public String toString() {
-		return "IteratorEnumeration";
-	}
-
+    @Override
+    public String toString() {
+        return "IteratorEnumeration";
+    }
 }

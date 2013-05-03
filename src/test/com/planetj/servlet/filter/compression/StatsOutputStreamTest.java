@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.planetj.servlet.filter.compression;
 
 import junit.framework.TestCase;
@@ -28,42 +27,43 @@ import java.io.OutputStream;
  */
 public final class StatsOutputStreamTest extends TestCase {
 
-	private ByteArrayOutputStream baos;
-	private MockStatsCallback callback;
-	private OutputStream statsOut;
+    private ByteArrayOutputStream baos;
+    private MockStatsCallback callback;
+    private OutputStream statsOut;
 
-	@Override	
-	public void setUp() throws Exception {
-		super.setUp();
-		baos = new ByteArrayOutputStream();
-		callback = new MockStatsCallback();
-		statsOut = new StatsOutputStream(baos, callback);
-	}
+    @Override
+    public void setUp() throws Exception {
+        super.setUp();
+        baos = new ByteArrayOutputStream();
+        callback = new MockStatsCallback();
+        statsOut = new StatsOutputStream(baos, callback);
+    }
 
-	public void testStats() throws Exception {
-		assertBytesWritten(0);
-		statsOut.write(0);
-		assertBytesWritten(1);
-		statsOut.write(new byte[10]);
-		assertBytesWritten(11);
-		statsOut.write(new byte[10], 0, 5);
-		assertBytesWritten(16);
-		statsOut.flush();
-		assertBytesWritten(16);
-		statsOut.close();
-		assertBytesWritten(16);
-	}
+    public void testStats() throws Exception {
+        assertBytesWritten(0);
+        statsOut.write(0);
+        assertBytesWritten(1);
+        statsOut.write(new byte[10]);
+        assertBytesWritten(11);
+        statsOut.write(new byte[10], 0, 5);
+        assertBytesWritten(16);
+        statsOut.flush();
+        assertBytesWritten(16);
+        statsOut.close();
+        assertBytesWritten(16);
+    }
 
-	private void assertBytesWritten(int numBytes) {
-		assertEquals(numBytes, callback.totalBytesWritten);
-		assertEquals(numBytes, baos.size());
-	}
+    private void assertBytesWritten(int numBytes) {
+        assertEquals(numBytes, callback.totalBytesWritten);
+        assertEquals(numBytes, baos.size());
+    }
 
-	private static final class MockStatsCallback implements StatsOutputStream.StatsCallback {
-		private int totalBytesWritten;
-		public void bytesWritten(int numBytes) {
-			totalBytesWritten += numBytes;
-		}
-	}
+    private static final class MockStatsCallback implements StatsOutputStream.StatsCallback {
 
+        private int totalBytesWritten;
+
+        public void bytesWritten(int numBytes) {
+            totalBytesWritten += numBytes;
+        }
+    }
 }
