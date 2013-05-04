@@ -49,6 +49,8 @@ final class CompressingFilterContext {
     // Thanks to reimerl for proposing this + sample code
     private final boolean includeUserAgentPatterns;
     private final Collection<Pattern> userAgentPatterns;
+    private final Collection<Pattern> noVaryHeaderPatterns;
+            
 
     CompressingFilterContext(FilterConfig filterConfig) throws ServletException {
 
@@ -88,6 +90,14 @@ final class CompressingFilterContext {
         } else {
             stats = null;
             logger.logDebug("Stats are disabled");
+        }
+        
+        String noVaryHeaderString = filterConfig.getInitParameter("noVaryHeaderPatterns");
+        if (noVaryHeaderString != null) {
+            noVaryHeaderPatterns = parsePatterns(noVaryHeaderString);
+        }
+        else {
+            noVaryHeaderPatterns = Collections.EMPTY_LIST;
         }
 
         String includeContentTypesString = filterConfig.getInitParameter("includeContentTypes");
@@ -197,6 +207,10 @@ final class CompressingFilterContext {
 
     Iterable<Pattern> getUserAgentPatterns() {
         return userAgentPatterns;
+    }
+    
+    Iterable<Pattern> getNoVaryHeaderPatterns() {
+        return noVaryHeaderPatterns;
     }
 
     @Override

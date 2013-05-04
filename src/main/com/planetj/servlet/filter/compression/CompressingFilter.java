@@ -127,6 +127,11 @@ import java.util.regex.Pattern;
  * <li><strong>excludeUserAgentPatterns</strong> (optional): as above, requests
  * whose {@code User-Agent} header matches one of these patterns will not be
  * compressed.</li>
+ * 
+ * <li><strong>noVaryHeaderPatterns</strong> (optional): Like
+ * {@code includeUserAgentPatterns}. Requests with {@code User-Agent} headers 
+ * whose value matches one of these regular expressions result in a response 
+ * that does not contain the {@code Vary-header} Since version 1.8</li>
  *
  * <li><strong>javaUtilLogger</strong> (optional): if specified, the named
  * {@code java.util.logging.Logger} will also receive log messages from this
@@ -379,7 +384,7 @@ public final class CompressingFilter implements Filter {
         // So we have to set it here as we now know the request is allowed by the filter-mapping (web.xml)
         // and by the path and user-agent patterns (above). It may or may not be compressed (depending
         // on the request "Accept-Encoding" header, below) - this is why we have to add the Vary Header now:
-        setVaryHeader(httpResponse);
+        setVaryHeader(httpResponse, userAgent);
 
         String contentEncoding = CompressingStreamFactory.getBestContentEncoding(httpRequest);
         assert contentEncoding != null;
@@ -410,7 +415,7 @@ public final class CompressingFilter implements Filter {
      * proxies or Squid Reverse Proxy setups) as the content depends on the
      * "Accept-Encoding" header of the client browser.</p>
      */
-    void setVaryHeader(HttpServletResponse httpResponse) {
+    void setVaryHeader(HttpServletResponse httpResponse, String userAgent) {
         // Note: There is an IE6/7 issue with the "Vary" header:
         //     http://www.fiddler2.com/fiddler/perf/aboutvary.asp
         //
@@ -422,11 +427,18 @@ public final class CompressingFilter implements Filter {
         //     IE7: WinINET will remove the Vary: Accept-Encoding header if it decompressed the response.
         //          Therefore, you should only send a Vary: Accept-Encoding header when you have
         //          compressed the content (e.g. Content-Encoding: gzip).
-        if (logger.isDebug()) {
-            logger.logDebug("Setting Vary Header because the response *could be compressed*. "
-                    + VARY_HEADER + " : " + CompressingHttpServletResponse.ACCEPT_ENCODING_HEADER);
+        if (sendVaryHeader(userAgent)) {
+            if (logger.isDebug()) {
+                logger.logDebug("Setting Vary Header because the response *could be compressed*. "
+                        + VARY_HEADER + " : " + CompressingHttpServletResponse.ACCEPT_ENCODING_HEADER);
+            }
+            httpResponse.addHeader(VARY_HEADER, CompressingHttpServletResponse.ACCEPT_ENCODING_HEADER);
         }
-        httpResponse.addHeader(VARY_HEADER, CompressingHttpServletResponse.ACCEPT_ENCODING_HEADER);
+        else {
+            if (logger.isDebug()) {
+                logger.logDebug("Vary header not set, because user agent should not receive the header");
+            }
+        }
     }
 
     public void destroy() {
@@ -463,6 +475,17 @@ public final class CompressingFilter implements Filter {
             }
         }
         return !context.isIncludeUserAgentPatterns();
+    }
+
+    private boolean sendVaryHeader(String userAgent) {
+        if (userAgent != null) {
+            for (Pattern pattern : context.getNoVaryHeaderPatterns()) {
+                if (pattern.matcher(userAgent).matches()) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     @Override
