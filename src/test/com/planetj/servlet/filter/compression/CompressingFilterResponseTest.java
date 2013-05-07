@@ -70,6 +70,7 @@ public final class CompressingFilterResponseTest extends TestCase {
         config.setInitParameter("excludePathPatterns", ".*badpath.*,whocares");
         config.setInitParameter("excludeContentTypes", "text/badtype,whatever");
         config.setInitParameter("excludeUserAgentPatterns", "Nokia.*");
+        config.setInitParameter("noVaryHeaderPatterns", ".*MSIE 8.*");
         module = new ServletTestModule(factory);
         module.addFilter(new CompressingFilter(), true);
         module.setDoChain(true);
@@ -176,6 +177,12 @@ public final class CompressingFilterResponseTest extends TestCase {
             }
         });
         verifyOutput(BIG_DOCUMENT, true);
+    }
+    
+    public void testDontSendVaryHeader() throws IOException {
+        MockHttpServletRequest request = factory.getMockRequest();
+        request.setHeader("User-Agent", "bla MSIE 8.0 blub");
+        verifyOutput(BIG_DOCUMENT, true, true);
     }
 
     public void testRedirect() throws Exception {
@@ -300,6 +307,10 @@ public final class CompressingFilterResponseTest extends TestCase {
     }
 
     private void verifyOutput(final String output, boolean shouldCompress) throws IOException {
+        verifyOutput(output, shouldCompress, false);
+    }
+    
+    private void verifyOutput(final String output, boolean shouldCompress, boolean noVaryHeader) throws IOException {
         if (module.getServlet() == null) {
             module.setServlet(new HttpServlet() {
                 @Override
@@ -321,8 +332,8 @@ public final class CompressingFilterResponseTest extends TestCase {
         assertFalse(response.wasRedirectSent());
         assertFalse(response.wasErrorSent());
 
-        if (shouldCompress) {
-            assertTrue(response.containsHeader("Vary"));
+        if (shouldCompress) { 
+            assertEquals("Check vary header", !noVaryHeader, response.containsHeader("Vary"));
             byte[] expectedBytes = getCompressedOutput(output.getBytes(TEST_ENCODING));
             // Since ServletTestModule makes a String out of the output according to ISO-8859-1 encoding,
             // do the same for expected bytes and then compare. Don't use assertEquals(); you'll just see
