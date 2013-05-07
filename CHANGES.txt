@@ -1,4 +1,9 @@
-Version 1.7.1
+Version 1.8
+- Added ability to add patterns to web.xml so the Vary-header is not
+  send, if these patterns match. Problems with IE8 and earlier can
+  be solved with this
+
+Version 1.7.1 2013-05-01
 - Now, flush() will not force compression. This was simply causing
   too many issues.
 - Compression threshold of 0 should now not force compression even
