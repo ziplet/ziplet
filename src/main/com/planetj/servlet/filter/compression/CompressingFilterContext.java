@@ -97,7 +97,7 @@ final class CompressingFilterContext {
             noVaryHeaderPatterns = parsePatterns(noVaryHeaderString);
         }
         else {
-            noVaryHeaderPatterns = Collections.EMPTY_LIST;
+            noVaryHeaderPatterns = Collections.emptyList();
         }
 
         String includeContentTypesString = filterConfig.getInitParameter("includeContentTypes");
