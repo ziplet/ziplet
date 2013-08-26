@@ -16,6 +16,8 @@
 package com.planetj.servlet.filter.compression;
 
 import java.io.Serializable;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * <p>This class provides runtime statistics on the performance of
@@ -46,35 +48,35 @@ public final class CompressingFilterStats implements Serializable {
     /**
      * @serial
      */
-    private int numResponsesCompressed;
+    private AtomicInteger numResponsesCompressed = new AtomicInteger();
     /**
      * @serial
      */
-    private int totalResponsesNotCompressed;
+    private AtomicInteger totalResponsesNotCompressed = new AtomicInteger();
     /**
      * @serial
      */
-    private long responseInputBytes;
+    private AtomicLong responseInputBytes = new AtomicLong();
     /**
      * @serial
      */
-    private long responseCompressedBytes;
+    private AtomicLong responseCompressedBytes = new AtomicLong();
     /**
      * @serial
      */
-    private int numRequestsCompressed;
+    private AtomicInteger numRequestsCompressed = new AtomicInteger();
     /**
      * @serial
      */
-    private int totalRequestsNotCompressed;
+    private AtomicInteger totalRequestsNotCompressed = new AtomicInteger();
     /**
      * @serial
      */
-    private long requestInputBytes;
+    private AtomicLong requestInputBytes = new AtomicLong();
     /**
      * @serial
      */
-    private long requestCompressedBytes;
+    private AtomicLong requestCompressedBytes = new AtomicLong();
     /**
      * @serial
      */
@@ -104,11 +106,11 @@ public final class CompressingFilterStats implements Serializable {
      * compressed.
      */
     public int getNumResponsesCompressed() {
-        return numResponsesCompressed;
+        return numResponsesCompressed.get();
     }
 
     void incrementNumResponsesCompressed() {
-        numResponsesCompressed++;
+        numResponsesCompressed.incrementAndGet();
     }
 
     /**
@@ -117,11 +119,11 @@ public final class CompressingFilterStats implements Serializable {
      * supported by the browser, for example).
      */
     public int getTotalResponsesNotCompressed() {
-        return totalResponsesNotCompressed;
+        return totalResponsesNotCompressed.get();
     }
 
     void incrementTotalResponsesNotCompressed() {
-        totalResponsesNotCompressed++;
+        totalResponsesNotCompressed.incrementAndGet();
     }
 
     /**
@@ -129,7 +131,7 @@ public final class CompressingFilterStats implements Serializable {
      */
     @Deprecated
     public long getInputBytes() {
-        return responseInputBytes;
+        return responseInputBytes.get();
     }
 
     /**
@@ -137,7 +139,7 @@ public final class CompressingFilterStats implements Serializable {
      * responses.
      */
     public long getResponseInputBytes() {
-        return responseInputBytes;
+        return responseInputBytes.get();
     }
 
     /**
@@ -145,7 +147,7 @@ public final class CompressingFilterStats implements Serializable {
      */
     @Deprecated
     public long getCompressedBytes() {
-        return responseCompressedBytes;
+        return responseCompressedBytes.get();
     }
 
     /**
@@ -153,7 +155,7 @@ public final class CompressingFilterStats implements Serializable {
      * {@link CompressingFilter} to the client in responses.
      */
     public long getResponseCompressedBytes() {
-        return responseCompressedBytes;
+        return responseCompressedBytes.get();
     }
 
     /**
@@ -170,7 +172,8 @@ public final class CompressingFilterStats implements Serializable {
      * (typically) greater than 1, not less than 1.
      */
     public double getResponseAverageCompressionRatio() {
-        return responseCompressedBytes == 0L ? 0.0 : (double) responseInputBytes / (double) responseCompressedBytes;
+        return responseCompressedBytes.get() == 0L ? 0.0 :
+                (double) responseInputBytes.get() / (double) responseCompressedBytes.get();
     }
 
     /**
@@ -179,11 +182,11 @@ public final class CompressingFilterStats implements Serializable {
      * @since 1.6
      */
     public int getNumRequestsCompressed() {
-        return numRequestsCompressed;
+        return numRequestsCompressed.get();
     }
 
     void incrementNumRequestsCompressed() {
-        numRequestsCompressed++;
+        numRequestsCompressed.incrementAndGet();
     }
 
     /**
@@ -193,11 +196,11 @@ public final class CompressingFilterStats implements Serializable {
      * @since 1.6
      */
     public int getTotalRequestsNotCompressed() {
-        return totalRequestsNotCompressed;
+        return totalRequestsNotCompressed.get();
     }
 
     void incrementTotalRequestsNotCompressed() {
-        totalRequestsNotCompressed++;
+        totalRequestsNotCompressed.incrementAndGet();
     }
 
     /**
@@ -206,7 +209,7 @@ public final class CompressingFilterStats implements Serializable {
      * @since 1.6
      */
     public long getRequestInputBytes() {
-        return requestInputBytes;
+        return requestInputBytes.get();
     }
 
     /**
@@ -215,7 +218,7 @@ public final class CompressingFilterStats implements Serializable {
      * @since 1.6
      */
     public long getRequestCompressedBytes() {
-        return requestCompressedBytes;
+        return requestCompressedBytes.get();
     }
 
     /**
@@ -225,7 +228,8 @@ public final class CompressingFilterStats implements Serializable {
      * @since 1.6
      */
     public double getRequestAverageCompressionRatio() {
-        return requestCompressedBytes == 0L ? 0.0 : (double) requestInputBytes / (double) requestCompressedBytes;
+        return requestCompressedBytes.get() == 0L ? 0.0 :
+                (double) requestInputBytes.get() / (double) requestCompressedBytes.get();
     }
 
     /**
@@ -277,10 +281,10 @@ public final class CompressingFilterStats implements Serializable {
             assert numBytes >= 0;
             switch (field) {
                 case RESPONSE_INPUT_BYTES:
-                    responseInputBytes += (long) numBytes;
+                    responseInputBytes.addAndGet(numBytes);
                     break;
                 case RESPONSE_COMPRESSED_BYTES:
-                    responseCompressedBytes += (long) numBytes;
+                    responseCompressedBytes.addAndGet(numBytes);
                     break;
                 default:
                     throw new IllegalStateException();
@@ -309,10 +313,10 @@ public final class CompressingFilterStats implements Serializable {
             assert numBytes >= 0;
             switch (field) {
                 case REQUEST_INPUT_BYTES:
-                    requestInputBytes += (long) numBytes;
+                    requestInputBytes.addAndGet(numBytes);
                     break;
                 case REQUEST_COMPRESSED_BYTES:
-                    requestCompressedBytes += (long) numBytes;
+                    requestCompressedBytes.addAndGet(numBytes);
                     break;
                 default:
                     throw new IllegalStateException();
