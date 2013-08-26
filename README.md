@@ -33,7 +33,7 @@ CompressingFilter supports the following parameters:
 
 **debug** (optional): if set to "true", additional debug information will be written to the servlet log. Defaults to false.
 compressionThreshold (optional): sets the size of the smallest response that will be compressed, in bytes. That is, if less than compressionThreshold bytes are written to the response, it will not be compressed and the response will go to the client unmodified. If 0, compression always begins immediately. Defaults to 1024.
-statsEnabled (optional): enables collection of statistics. See CompressingFilterStats. Defaults to false.
+statsEnabled (optional): enables collection of statistics. See CompressingFilterStats. Defaults to false. Don't use this in high traffic environments!
 
 **includeContentTypes** (optional): if specified, this is treated as a comma-separated list of content types (e.g. text/html,text/xml). The filter will attempt to only compress responses which specify one of these values as its content type, for example via ServletResponse.setContentType(String). Note that the filter does not know the response content type at the time it is applied, and so must apply itself and later attempt to disable compression when content type has been set. This will fail if the response has already been committed. Also note that this parameter cannot be specified if excludeContentTypes is too.
 
