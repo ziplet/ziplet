@@ -15,6 +15,10 @@
  */
 package com.planetj.servlet.filter.compression;
 
+import com.planetj.servlet.filter.compression.statistics.CompressingFilterEmptyStats;
+import com.planetj.servlet.filter.compression.statistics.CompressingFilterStats;
+import com.planetj.servlet.filter.compression.statistics.CompressingFilterStatsImpl;
+
 import javax.servlet.FilterConfig;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
@@ -40,7 +44,7 @@ final class CompressingFilterContext {
 	private final CompressingFilterLogger logger;
 	private final int compressionThreshold;
 	private final ServletContext servletContext;
-	private final CompressingFilterStats stats;
+	private CompressingFilterStats stats;
 	private final boolean includeContentTypes;
 	private final Collection<String> contentTypes;
 	// Thanks to Peter Bryant for suggesting this functionality:
@@ -50,7 +54,11 @@ final class CompressingFilterContext {
 	private final boolean includeUserAgentPatterns;
 	private final Collection<Pattern> userAgentPatterns;
     private final Collection<Pattern> noVaryHeaderPatterns;
-            
+
+    CompressingFilterContext(FilterConfig filterConfig, CompressingFilterStats stats) throws ServletException {
+        this(filterConfig);
+        this.setCompressingFilterStats(stats);
+    }
 
 	CompressingFilterContext(FilterConfig filterConfig) throws ServletException {
 
@@ -67,7 +75,7 @@ final class CompressingFilterContext {
 		} else {
 			String jakartaCommonsDelegateName =
 				filterConfig.getInitParameter("jakartaCommonsLogger");
-      logger = new CompressingFilterLoggerImpl(filterConfig.getServletContext(),
+                logger = new CompressingFilterLoggerImpl(filterConfig.getServletContext(),
                                                debug,
                                                jakartaCommonsDelegateName,
                                                false);
@@ -84,11 +92,11 @@ final class CompressingFilterContext {
 		assert this.servletContext != null;
 
 		if (readBooleanValue(filterConfig, "statsEnabled")) {
-			stats = new CompressingFilterStats();
+			stats = new CompressingFilterStatsImpl();
 			ensureStatsInContext();
 			logger.logDebug("Stats are enabled");
 		} else {
-			stats = null;
+			stats = new CompressingFilterEmptyStats();
 			logger.logDebug("Stats are disabled");
 		}
 
@@ -160,6 +168,10 @@ final class CompressingFilterContext {
 
 	}
 
+    public void setCompressingFilterStats(CompressingFilterStats stats) {
+        this.stats = stats;
+    }
+
 	boolean isDebug() {
 		return debug;
 	}
@@ -173,16 +185,12 @@ final class CompressingFilterContext {
 		return compressionThreshold;
 	}
 
-	CompressingFilterStats getStats() {
+	public CompressingFilterStats getStats() {
 		if (stats == null) {
 			throw new IllegalStateException("Stats are not enabled");
 		}
 		ensureStatsInContext();
 		return stats;
-	}
-
-	boolean isStatsEnabled() {
-		return stats != null;
 	}
 
 	boolean isIncludeContentTypes() {
@@ -220,8 +228,8 @@ final class CompressingFilterContext {
 
 	private void ensureStatsInContext() {
 		assert servletContext != null;
-		if (servletContext.getAttribute(CompressingFilterStats.STATS_KEY) == null) {
-			servletContext.setAttribute(CompressingFilterStats.STATS_KEY, stats);
+		if (servletContext.getAttribute(stats.getStatsKey()) == null) {
+			servletContext.setAttribute(stats.getStatsKey(), stats);
 		}
 	}
 

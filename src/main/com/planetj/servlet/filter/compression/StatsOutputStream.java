@@ -15,6 +15,8 @@
  */
 package com.planetj.servlet.filter.compression;
 
+import com.planetj.servlet.filter.compression.statistics.CompressingFilterStats;
+
 import java.io.IOException;
 import java.io.OutputStream;
 
@@ -27,28 +29,30 @@ import java.io.OutputStream;
  *
  * @author Sean Owen
  */
-final class StatsOutputStream extends OutputStream {
+public class StatsOutputStream extends OutputStream {
 
-    private final OutputStream outputStream;
-    private final StatsCallback statsCallback;
+    protected final OutputStream outputStream;
+    protected final CompressingFilterStats stats;
+    protected final StatsField field;
 
-    StatsOutputStream(OutputStream outputStream, StatsCallback statsCallback) {
-        assert outputStream != null && statsCallback != null;
+    StatsOutputStream(OutputStream outputStream, CompressingFilterStats stats, StatsField field) {
+        assert outputStream != null && stats != null;
         this.outputStream = outputStream;
-        this.statsCallback = statsCallback;
+        this.stats = stats;
+        this.field = field;
     }
 
     @Override
     public void write(int b) throws IOException {
         outputStream.write(b);
-        statsCallback.bytesWritten(1);
+        notifyBytesWritten(1);
     }
 
     @Override
     public void write(byte[] b) throws IOException {
         outputStream.write(b);
         if (b != null && b.length > 0) {
-            statsCallback.bytesWritten(b.length);
+            notifyBytesWritten(b.length);
         }
     }
 
@@ -56,7 +60,7 @@ final class StatsOutputStream extends OutputStream {
     public void write(byte[] b, int off, int len) throws IOException {
         outputStream.write(b, off, len);
         if (len > 0) {
-            statsCallback.bytesWritten(len);
+            notifyBytesWritten(len);
         }
     }
 
@@ -75,8 +79,17 @@ final class StatsOutputStream extends OutputStream {
         return "StatsOutputStream[" + outputStream + ']';
     }
 
-    interface StatsCallback {
-
-        void bytesWritten(int numBytes);
+    private void notifyBytesWritten(long result) {
+        switch (this.field) {
+            case RESPONSE_INPUT_BYTES:
+                stats.notifyResponseBytesWritten(result);
+                break;
+            case RESPONSE_COMPRESSED_BYTES:
+                stats.notifyCompressedResponseBytesWritten(result);
+                break;
+            default:
+                throw new IllegalStateException();
+        }
     }
+
 }

@@ -15,9 +15,12 @@
  */
 package com.planetj.servlet.filter.compression;
 
+import com.planetj.servlet.filter.compression.statistics.CompressingFilterStats;
+import com.planetj.servlet.filter.compression.statistics.CompressingFilterStatsImpl;
 import junit.framework.TestCase;
 
 import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.io.OutputStream;
 
 /**
@@ -28,15 +31,13 @@ import java.io.OutputStream;
 public final class StatsOutputStreamTest extends TestCase {
 
     private ByteArrayOutputStream baos;
-    private MockStatsCallback callback;
-    private OutputStream statsOut;
+    private MockStatsOutputStream statsOut;
 
     @Override
     public void setUp() throws Exception {
         super.setUp();
         baos = new ByteArrayOutputStream();
-        callback = new MockStatsCallback();
-        statsOut = new StatsOutputStream(baos, callback);
+        statsOut = new MockStatsOutputStream(baos, new CompressingFilterStatsImpl(), StatsField.RESPONSE_INPUT_BYTES);
     }
 
     public void testStats() throws Exception {
@@ -54,16 +55,19 @@ public final class StatsOutputStreamTest extends TestCase {
     }
 
     private void assertBytesWritten(int numBytes) {
-        assertEquals(numBytes, callback.totalBytesWritten);
+        assertEquals(numBytes, statsOut.getTotalBytesWritten());
         assertEquals(numBytes, baos.size());
     }
 
-    private static final class MockStatsCallback implements StatsOutputStream.StatsCallback {
+    private static final class MockStatsOutputStream extends StatsOutputStream {
 
-        private int totalBytesWritten;
+        public MockStatsOutputStream(OutputStream outputStream, CompressingFilterStats stats, StatsField field) {
+            super(outputStream, stats, field);
+        }
 
-        public void bytesWritten(int numBytes) {
-            totalBytesWritten += numBytes;
+        public long getTotalBytesWritten() {
+            return ((CompressingFilterStatsImpl)this.stats).getResponseInputBytes();
         }
     }
+
 }

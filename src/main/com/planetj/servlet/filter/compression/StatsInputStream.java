@@ -15,6 +15,8 @@
  */
 package com.planetj.servlet.filter.compression;
 
+import com.planetj.servlet.filter.compression.statistics.CompressingFilterStats;
+
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -28,44 +30,57 @@ import java.io.InputStream;
  * @author Sean Owen
  * @since 1.6
  */
-final class StatsInputStream extends InputStream {
+public class StatsInputStream extends InputStream {
 
-    private final InputStream inputStream;
-    private final StatsCallback statsCallback;
+    protected final InputStream inputStream;
+    protected final CompressingFilterStats stats;
+    protected final StatsField field;
 
-    StatsInputStream(InputStream inputStream, StatsCallback statsCallback) {
-        assert inputStream != null && statsCallback != null;
+    public StatsInputStream(InputStream inputStream, CompressingFilterStats stats, StatsField field) {
+        assert inputStream != null && stats != null;
         this.inputStream = inputStream;
-        this.statsCallback = statsCallback;
+        this.stats = stats;
+        this.field = field;
     }
 
     @Override
     public int read() throws IOException {
         int result = inputStream.read();
-        if (result >= 0) {
-            // here, result is the byte read, or -1 if EOF
-            statsCallback.bytesRead(1);
-        }
+        notifyRequestBytesRead(1);
         return result;
+    }
+
+    private void notifyRequestBytesRead(long result) {
+            notifyBytesRead(result);
+    }
+
+    private void notifyBytesRead(long result) {
+        if (result >= 0) {
+            switch (this.field) {
+                case REQUEST_INPUT_BYTES:
+                    stats.notifyRequestBytesRead(result);
+                    break;
+                case REQUEST_COMPRESSED_BYTES:
+                    stats.notifyCompressedRequestBytesRead(result);
+                    break;
+                default:
+                    throw new IllegalStateException();
+            }
+            // here, result is the byte read, or -1 if EOF
+        }
     }
 
     @Override
     public int read(byte[] b) throws IOException {
         int result = inputStream.read(b);
-        if (result >= 0) {
-            // here, result is number of bytes read
-            statsCallback.bytesRead(result);
-        }
+        this.notifyBytesRead(result);
         return result;
     }
 
     @Override
     public int read(byte[] b, int offset, int length) throws IOException {
         int result = inputStream.read(b, offset, length);
-        if (result >= 0) {
-            // here, result is number of bytes read			
-            statsCallback.bytesRead(result);
-        }
+        this.notifyBytesRead(result);
         return result;
     }
 
@@ -105,8 +120,4 @@ final class StatsInputStream extends InputStream {
         return "StatsInputStream[" + inputStream + ']';
     }
 
-    interface StatsCallback {
-
-        void bytesRead(int numBytes);
-    }
 }

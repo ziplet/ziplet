@@ -15,6 +15,8 @@
  */
 package com.planetj.servlet.filter.compression;
 
+import com.planetj.servlet.filter.compression.statistics.CompressingFilterStats;
+
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
@@ -254,10 +256,15 @@ public final class CompressingFilter implements Filter {
     static final String VERSION_STRING = CompressingFilter.class.getName() + '/' + VERSION;
     private CompressingFilterContext context;
     private CompressingFilterLogger logger;
+    private CompressingFilterStats stats;
 
+    @Override
     public void init(FilterConfig config) throws ServletException {
         assert config != null;
         context = new CompressingFilterContext(config);
+        if(stats != null) {
+            context.setCompressingFilterStats(this.stats);
+        }
         logger = context.getLogger();
         logger.log("CompressingFilter has initialized");
     }
@@ -279,15 +286,13 @@ public final class CompressingFilter implements Filter {
             chainResponse = response;
         }
 
-        boolean statsEnabled = context.isStatsEnabled();
 
-        if (statsEnabled) {
-            if (attemptingToDecompressRequest) {
-                context.getStats().incrementNumRequestsCompressed();
-            } else {
-                context.getStats().incrementTotalRequestsNotCompressed();
-            }
+        if (attemptingToDecompressRequest) {
+            context.getStats().incrementNumRequestsCompressed();
+        } else {
+            context.getStats().incrementTotalRequestsNotCompressed();
         }
+
 
         request.setAttribute(ALREADY_APPLIED_KEY, Boolean.TRUE);
         chain.doFilter(chainRequest, chainResponse);
@@ -314,14 +319,9 @@ public final class CompressingFilter implements Filter {
                 chainRequest.setAttribute(COMPRESSED_KEY, Boolean.TRUE);
             }
 
-            if (statsEnabled) {
-                context.getStats().incrementNumResponsesCompressed();
-            }
-
+            context.getStats().incrementNumResponsesCompressed();
         } else {
-            if (statsEnabled) {
-                context.getStats().incrementTotalResponsesNotCompressed();
-            }
+            context.getStats().incrementTotalResponsesNotCompressed();
         }
 
     }
@@ -491,5 +491,13 @@ public final class CompressingFilter implements Filter {
     @Override
     public String toString() {
         return VERSION_STRING;
+    }
+
+    /**
+     * Method used to inject stats from outside if you are implementing your own metrics to report stats
+     * @param stats
+     */
+    public void setCompressingFilterStats(CompressingFilterStats stats) {
+        this.stats = stats;
     }
 }

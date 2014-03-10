@@ -13,7 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.planetj.servlet.filter.compression;
+package com.planetj.servlet.filter.compression.statistics;
+
+import com.planetj.servlet.filter.compression.StatsInputStream;
+import com.planetj.servlet.filter.compression.StatsOutputStream;
 
 import java.io.Serializable;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -21,7 +24,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * <p>This class provides runtime statistics on the performance of
- * {@link CompressingFilter}. If stats are enabled, then an instance of this
+ * {@link com.planetj.servlet.filter.compression.CompressingFilter}. If stats are enabled, then an instance of this
  * object will be available in the servlet context under the key
  * {@link #STATS_KEY}. It can be retrieved and used like so:</p>
  * <p/>
@@ -29,7 +32,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * pre>
  * ServletContext ctx = ...;
  * // in a JSP, "ctx" is already available as the "application" variable
- * CompressingFilterStats stats = (CompressingFilterStats) ctx.getAttribute(CompressingFilterStats.STATS_KEY);
+ * CompressingFilterStatsImpl stats = (CompressingFilterStatsImpl) ctx.getAttribute(CompressingFilterStatsImpl.STATS_KEY);
  * double ratio = stats.getAverageCompressionRatio();
  * ...
  * </pre>
@@ -37,14 +40,14 @@ import java.util.concurrent.atomic.AtomicLong;
  * @author Sean Owen
  * @since 1.1
  */
-public final class CompressingFilterStats implements Serializable {
+public class CompressingFilterStatsImpl implements Serializable, CompressingFilterStats {
 
     private static final long serialVersionUID = -2246829834191152845L;
     /**
-     * Key under which a {@link CompressingFilterStats} object can be found in
+     * Key under which a {@link CompressingFilterStatsImpl} object can be found in
      * the servlet context.
      */
-    public static final String STATS_KEY = "com.planetj.servlet.filter.compression.CompressingFilterStats";
+    private static final String STATS_KEY = "com.planetj.servlet.filter.compression.statistics.CompressingFilterStatsImpl";
     /**
      * @serial
      */
@@ -77,44 +80,22 @@ public final class CompressingFilterStats implements Serializable {
      * @serial
      */
     private AtomicLong requestCompressedBytes = new AtomicLong();
-    /**
-     * @serial
-     */
-    private final OutputStatsCallback responseInputStatsCallback;
-    /**
-     * @serial
-     */
-    private final OutputStatsCallback responseCompressedStatsCallback;
-    /**
-     * @serial
-     */
-    private final InputStatsCallback requestInputStatsCallback;
-    /**
-     * @serial
-     */
-    private final InputStatsCallback requestCompressedStatsCallback;
-
-    CompressingFilterStats() {
-        responseInputStatsCallback = new OutputStatsCallback(StatsField.RESPONSE_INPUT_BYTES);
-        responseCompressedStatsCallback = new OutputStatsCallback(StatsField.RESPONSE_COMPRESSED_BYTES);
-        requestInputStatsCallback = new InputStatsCallback(StatsField.REQUEST_INPUT_BYTES);
-        requestCompressedStatsCallback = new InputStatsCallback(StatsField.REQUEST_COMPRESSED_BYTES);
-    }
 
     /**
-     * @return the number of responses which {@link CompressingFilter} has
+     * @return the number of responses which {@link com.planetj.servlet.filter.compression.CompressingFilter} has
      * compressed.
      */
     public int getNumResponsesCompressed() {
         return numResponsesCompressed.get();
     }
 
-    void incrementNumResponsesCompressed() {
+    @Override
+    public void incrementNumResponsesCompressed() {
         numResponsesCompressed.incrementAndGet();
     }
 
     /**
-     * @return the number of responses which {@link CompressingFilter} has
+     * @return the number of responses which {@link com.planetj.servlet.filter.compression.CompressingFilter} has
      * processed but <em>not</em> compressed for some reason (compression not
      * supported by the browser, for example).
      */
@@ -122,7 +103,8 @@ public final class CompressingFilterStats implements Serializable {
         return totalResponsesNotCompressed.get();
     }
 
-    void incrementTotalResponsesNotCompressed() {
+    @Override
+    public void incrementTotalResponsesNotCompressed() {
         totalResponsesNotCompressed.incrementAndGet();
     }
 
@@ -135,7 +117,7 @@ public final class CompressingFilterStats implements Serializable {
     }
 
     /**
-     * @return total number of bytes written to the {@link CompressingFilter} in
+     * @return total number of bytes written to the {@link com.planetj.servlet.filter.compression.CompressingFilter} in
      * responses.
      */
     public long getResponseInputBytes() {
@@ -152,7 +134,7 @@ public final class CompressingFilterStats implements Serializable {
 
     /**
      * @return total number of compressed bytes written by the
-     * {@link CompressingFilter} to the client in responses.
+     * {@link com.planetj.servlet.filter.compression.CompressingFilter} to the client in responses.
      */
     public long getResponseCompressedBytes() {
         return responseCompressedBytes.get();
@@ -177,7 +159,7 @@ public final class CompressingFilterStats implements Serializable {
     }
 
     /**
-     * @return the number of requests which {@link CompressingFilter} has
+     * @return the number of requests which {@link com.planetj.servlet.filter.compression.CompressingFilter} has
      * compressed.
      * @since 1.6
      */
@@ -185,12 +167,13 @@ public final class CompressingFilterStats implements Serializable {
         return numRequestsCompressed.get();
     }
 
-    void incrementNumRequestsCompressed() {
+    @Override
+    public void incrementNumRequestsCompressed() {
         numRequestsCompressed.incrementAndGet();
     }
 
     /**
-     * @return the number of requests which {@link CompressingFilter} has
+     * @return the number of requests which {@link com.planetj.servlet.filter.compression.CompressingFilter} has
      * processed but <em>not</em> compressed for some reason (no compression
      * requested, for example).
      * @since 1.6
@@ -199,12 +182,13 @@ public final class CompressingFilterStats implements Serializable {
         return totalRequestsNotCompressed.get();
     }
 
-    void incrementTotalRequestsNotCompressed() {
+    @Override
+    public void incrementTotalRequestsNotCompressed() {
         totalRequestsNotCompressed.incrementAndGet();
     }
 
     /**
-     * @return total number of bytes written to the {@link CompressingFilter} in
+     * @return total number of bytes written to the {@link com.planetj.servlet.filter.compression.CompressingFilter} in
      * requests.
      * @since 1.6
      */
@@ -214,7 +198,7 @@ public final class CompressingFilterStats implements Serializable {
 
     /**
      * @return total number of compressed bytes written by the
-     * {@link CompressingFilter} to the client in requests.
+     * {@link com.planetj.servlet.filter.compression.CompressingFilter} to the client in requests.
      * @since 1.6
      */
     public long getRequestCompressedBytes() {
@@ -237,110 +221,36 @@ public final class CompressingFilterStats implements Serializable {
      */
     @Override
     public String toString() {
-        return "CompressingFilterStats[responses compressed: " + numResponsesCompressed
+        return "CompressingFilterStatsImpl[responses compressed: " + numResponsesCompressed
                 + ", avg. response compression ratio: " + getResponseAverageCompressionRatio()
                 + ", requests compressed: " + numRequestsCompressed
                 + ", avg. request compression ratio: " + getRequestAverageCompressionRatio() + ']';
     }
 
-    OutputStatsCallback getOutputStatsCallback(StatsField field) {
-        switch (field) {
-            case RESPONSE_INPUT_BYTES:
-                return responseInputStatsCallback;
-            case RESPONSE_COMPRESSED_BYTES:
-                return responseCompressedStatsCallback;
-            default:
-                throw new IllegalArgumentException();
-        }
+    @Override
+    public  void notifyRequestBytesRead(long read) {
+        requestInputBytes.addAndGet(read);
     }
 
-    InputStatsCallback getInputStatsCallback(StatsField field) {
-        switch (field) {
-            case REQUEST_INPUT_BYTES:
-                return requestInputStatsCallback;
-            case REQUEST_COMPRESSED_BYTES:
-                return requestCompressedStatsCallback;
-            default:
-                throw new IllegalArgumentException();
-        }
+    @Override
+    public  void notifyCompressedRequestBytesRead(long read) {
+        this.requestCompressedBytes.addAndGet(read);
     }
 
-    final class OutputStatsCallback implements StatsOutputStream.StatsCallback, Serializable {
-
-        private static final long serialVersionUID = -4483355731273629325L;
-        /**
-         * @serial
-         */
-        private final StatsField field;
-
-        private OutputStatsCallback(StatsField field) {
-            this.field = field;
-        }
-
-        public void bytesWritten(int numBytes) {
-            assert numBytes >= 0;
-            switch (field) {
-                case RESPONSE_INPUT_BYTES:
-                    responseInputBytes.addAndGet(numBytes);
-                    break;
-                case RESPONSE_COMPRESSED_BYTES:
-                    responseCompressedBytes.addAndGet(numBytes);
-                    break;
-                default:
-                    throw new IllegalStateException();
-            }
-        }
-
-        @Override
-        public String toString() {
-            return "OutputStatsCallback[field: " + field + ']';
-        }
+    @Override
+    public void notifyResponseBytesWritten(long written) {
+        this.responseInputBytes.addAndGet(written);
     }
 
-    final class InputStatsCallback implements StatsInputStream.StatsCallback, Serializable {
-
-        private static final long serialVersionUID = 8205059279453932247L;
-        /**
-         * @serial
-         */
-        private final StatsField field;
-
-        private InputStatsCallback(StatsField field) {
-            this.field = field;
-        }
-
-        public void bytesRead(int numBytes) {
-            assert numBytes >= 0;
-            switch (field) {
-                case REQUEST_INPUT_BYTES:
-                    requestInputBytes.addAndGet(numBytes);
-                    break;
-                case REQUEST_COMPRESSED_BYTES:
-                    requestCompressedBytes.addAndGet(numBytes);
-                    break;
-                default:
-                    throw new IllegalStateException();
-            }
-        }
-
-        @Override
-        public String toString() {
-            return "InputStatsCallback[field: " + field + ']';
-        }
+    @Override
+    public void notifyCompressedResponseBytesWritten(long written) {
+        this.responseCompressedBytes.addAndGet(written);
     }
 
-    /**
-     * <p>A simple enum used by {@link OutputStatsCallback} to select a field in
-     * this class. This is getting a little messy but somehow better than
-     * defining a bunch of inner classes?</p>
-     *
-     * @since 1.6
-     */
-    enum StatsField implements Serializable {
-
-        RESPONSE_INPUT_BYTES,
-        RESPONSE_COMPRESSED_BYTES,
-        REQUEST_INPUT_BYTES,
-        REQUEST_COMPRESSED_BYTES
+    @Override
+    public String getStatsKey() {
+        return STATS_KEY;
     }
 }
+
+
