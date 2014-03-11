@@ -15,6 +15,9 @@
  */
 package com.planetj.servlet.filter.compression;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -24,6 +27,7 @@ import java.io.OutputStream;
  */
 final class ThresholdOutputStream extends OutputStream {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(ThresholdOutputStream.class);
     private boolean buffering;
     private final OutputStream out1;
     private OutputStream out2;
@@ -35,13 +39,11 @@ final class ThresholdOutputStream extends OutputStream {
     private ByteArrayOutputStream buffer;
     private boolean closed;
     private boolean forceOut1;
-    private final CompressingFilterLogger logger;
 
     ThresholdOutputStream(OutputStream out1,
             CompressingStreamFactory compressingStreamFactory,
             CompressingFilterContext context,
-            BufferCommitmentCallback thresholdReachedCallback,
-            CompressingFilterLogger logger) {
+            BufferCommitmentCallback thresholdReachedCallback) {
         assert out1 != null && compressingStreamFactory != null
                 && context != null && thresholdReachedCallback != null;
         buffering = true;
@@ -50,7 +52,6 @@ final class ThresholdOutputStream extends OutputStream {
         this.context = context;
         threshold = context.getCompressionThreshold();
         bufferCommitmentCallback = thresholdReachedCallback;
-        this.logger = logger;
     }
 
     @Override
@@ -108,7 +109,7 @@ final class ThresholdOutputStream extends OutputStream {
         } else if (!buffering) {
             out2.flush();
         } else {
-            logger.logDebug("Switching to alternate stream due to flush()");
+            LOGGER.debug("Switching to alternate stream due to flush()");
             switchToOutputStream2();
         }
     }
@@ -184,7 +185,7 @@ final class ThresholdOutputStream extends OutputStream {
     }
 
     void forceOutputStream1() throws IOException {
-        logger.logDebug("Forced to primary stream");
+        LOGGER.debug("Forced to primary stream");
         forceOut1 = true;
         if (bufferCommitmentCallback != null) {
             bufferCommitmentCallback.rawStreamCommitted();
@@ -193,7 +194,7 @@ final class ThresholdOutputStream extends OutputStream {
     }
 
     void switchToOutputStream2() throws IOException {
-        logger.logDebug("Forced to alternate stream");
+        LOGGER.debug("Forced to alternate stream");
         assert buffering;
         // invoke callback
         if (bufferCommitmentCallback != null) {

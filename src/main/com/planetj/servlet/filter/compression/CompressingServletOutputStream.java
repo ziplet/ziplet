@@ -15,6 +15,9 @@
  */
 package com.planetj.servlet.filter.compression;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.servlet.ServletOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -27,6 +30,7 @@ import java.io.OutputStream;
  */
 final class CompressingServletOutputStream extends ServletOutputStream {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(CompressingServletOutputStream.class);
     private final OutputStream rawStream;
     private final CompressingStreamFactory compressingStreamFactory;
     private final CompressingHttpServletResponse compressingResponse;
@@ -34,18 +38,15 @@ final class CompressingServletOutputStream extends ServletOutputStream {
     private ThresholdOutputStream thresholdOutputStream;
     private boolean closed;
     private boolean aborted;
-    private final CompressingFilterLogger logger;
 
     CompressingServletOutputStream(OutputStream rawStream,
             CompressingStreamFactory compressingStreamFactory,
             CompressingHttpServletResponse compressingResponse,
-            CompressingFilterContext context,
-            CompressingFilterLogger logger) {
+            CompressingFilterContext context) {
         this.rawStream = rawStream;
         this.compressingStreamFactory = compressingStreamFactory;
         this.compressingResponse = compressingResponse;
         this.context = context;
-        this.logger = logger;
         closed = false;
         aborted = false;
     }
@@ -134,8 +135,7 @@ final class CompressingServletOutputStream extends ServletOutputStream {
                     new ThresholdOutputStream(rawStream,
                     compressingStreamFactory,
                     context,
-                    new ResponseBufferCommitmentCallback(compressingResponse),
-                    logger);
+                    new ResponseBufferCommitmentCallback(compressingResponse));
         }
     }
 

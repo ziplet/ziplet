@@ -18,7 +18,7 @@
 <project basedir="." default="build" name="pjl-comp-filter">
 
   <property name="name" value="${ant.project.name}"/>
-  <property name="version" value="1.8.2"/>
+  <property name="version" value="2.0"/>
   <property name="jar" value="${name}-${version}.jar"/>
   <property name="release-zip" value="${name}-${version}.zip"/>
 
