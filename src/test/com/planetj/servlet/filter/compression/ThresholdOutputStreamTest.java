@@ -41,12 +41,10 @@ public final class ThresholdOutputStreamTest extends TestCase {
         WebMockObjectFactory factory = new WebMockObjectFactory();
         FilterConfig filterConfig = factory.getMockFilterConfig();
         CompressingFilterContext context = new CompressingFilterContext(filterConfig);
-        CompressingFilterLogger logger = new CompressingFilterLoggerImpl(factory.getMockServletContext(), true, null, false);
         tos = new ThresholdOutputStream(baos,
                 CompressingStreamFactory.getFactoryForContentEncoding("gzip"),
                 context,
-                callback,
-                logger);
+                callback);
     }
 
     public void testWriteFlush() throws Exception {

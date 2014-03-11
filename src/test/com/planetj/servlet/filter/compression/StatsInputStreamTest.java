@@ -15,10 +15,13 @@
  */
 package com.planetj.servlet.filter.compression;
 
+import com.planetj.servlet.filter.compression.statistics.CompressingFilterStats;
+import com.planetj.servlet.filter.compression.statistics.CompressingFilterStatsImpl;
 import junit.framework.TestCase;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.io.OutputStream;
 
 /**
  * Tests {@link StatsInputStream}.
@@ -29,40 +32,33 @@ import java.io.InputStream;
 public final class StatsInputStreamTest extends TestCase {
 
     private ByteArrayInputStream bais;
-    private MockStatsCallback callback;
-    private InputStream statsIn;
+    private MockStatsInputStream statsIn;
 
     @Override
     public void setUp() throws Exception {
         super.setUp();
         bais = new ByteArrayInputStream(new byte[100]);
-        callback = new MockStatsCallback();
-        statsIn = new StatsInputStream(bais, callback);
+        statsIn = new MockStatsInputStream(bais, new CompressingFilterStatsImpl(), StatsField.REQUEST_INPUT_BYTES);
     }
 
     public void testStats() throws Exception {
-        assertBytesRead(0);
         assertEquals(0, statsIn.read());
-        assertBytesRead(1);
+        assertEquals(1, statsIn.getTotalBytesRead());
         assertEquals(10, statsIn.read(new byte[10]));
-        assertBytesRead(11);
+        assertEquals(11, statsIn.getTotalBytesRead());
         assertEquals(5, statsIn.read(new byte[10], 0, 5));
-        assertBytesRead(16);
+        assertEquals(16, statsIn.getTotalBytesRead());
         statsIn.close();
-        assertBytesRead(16);
     }
 
-    private void assertBytesRead(int numBytes) {
-        assertEquals(numBytes, callback.totalBytesRead);
-        assertEquals(numBytes, 100 - bais.available());
-    }
+    private static final class MockStatsInputStream extends StatsInputStream {
 
-    private static final class MockStatsCallback implements StatsInputStream.StatsCallback {
+        public MockStatsInputStream(InputStream inputStream, CompressingFilterStats stats, StatsField field) {
+            super(inputStream, stats, field);
+        }
 
-        private int totalBytesRead;
-
-        public void bytesRead(int numBytes) {
-            totalBytesRead += numBytes;
+        public long getTotalBytesRead() {
+            return ((CompressingFilterStatsImpl)this.stats).getRequestInputBytes();
         }
     }
 }

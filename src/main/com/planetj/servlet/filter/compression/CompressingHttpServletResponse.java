@@ -15,6 +15,9 @@
  */
 package com.planetj.servlet.filter.compression;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpServletResponseWrapper;
@@ -30,6 +33,7 @@ import java.io.PrintWriter;
  */
 final class CompressingHttpServletResponse extends HttpServletResponseWrapper {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(CompressingHttpServletResponse.class);
     static final String ACCEPT_ENCODING_HEADER = "Accept-Encoding";
     private static final String CACHE_CONTROL_HEADER = "Cache-Control";
     static final String CONTENT_ENCODING_HEADER = "Content-Encoding";
@@ -41,7 +45,6 @@ final class CompressingHttpServletResponse extends HttpServletResponseWrapper {
     private static final String COMPRESSED_BY_VALUE = CompressingFilter.VERSION_STRING;
     private final HttpServletResponse httpResponse;
     private final CompressingFilterContext context;
-    private final CompressingFilterLogger logger;
     private final String compressedContentEncoding;
     private final CompressingStreamFactory compressingStreamFactory;
     private CompressingServletOutputStream compressingSOS;
@@ -64,7 +67,6 @@ final class CompressingHttpServletResponse extends HttpServletResponseWrapper {
         this.httpResponse = httpResponse;
         this.compressedContentEncoding = contentEncoding;
         compressing = false;
-        logger = context.getLogger();
         this.compressingStreamFactory = compressingStreamFactory;
         this.context = context;
         contentTypeOK = true;
@@ -101,7 +103,7 @@ final class CompressingHttpServletResponse extends HttpServletResponseWrapper {
         if (CACHE_CONTROL_HEADER.equalsIgnoreCase(name)) {
             httpResponse.addHeader(CACHE_CONTROL_HEADER, value);
             if (value.contains("no-transform")) {
-                logger.logDebug("Aborting compression due to no-transform directive");
+                LOGGER.debug("Aborting compression due to no-transform directive");
                 noTransformSet = true;
                 maybeAbortCompression();
             }
@@ -161,7 +163,7 @@ final class CompressingHttpServletResponse extends HttpServletResponseWrapper {
         if (CACHE_CONTROL_HEADER.equalsIgnoreCase(name)) {
             httpResponse.setHeader(CACHE_CONTROL_HEADER, value);
             if (value.contains("no-transform")) {
-                logger.logDebug("Aborting compression due to no-transform directive");
+                LOGGER.debug("Aborting compression due to no-transform directive");
                 noTransformSet = true;
                 maybeAbortCompression();
             }
@@ -193,7 +195,7 @@ final class CompressingHttpServletResponse extends HttpServletResponseWrapper {
                 compressingSOS.abortCompression();
             } catch (IOException ioe) {
                 // Can't throw this, hmm...
-                logger.log("Unexpected error while aborting compression", ioe);
+                LOGGER.info("Unexpected error while aborting compression", ioe);
             }
         }
     }
@@ -276,11 +278,11 @@ final class CompressingHttpServletResponse extends HttpServletResponseWrapper {
     private void doSetContentLength(long contentLength) {
         if (compressing) {
             // do nothing -- caller-supplied content length is not meaningful
-            logger.logDebug("Ignoring application-specified content length since response is compressed");
+            LOGGER.debug("Ignoring application-specified content length since response is compressed");
         } else {
             savedContentLength = contentLength;
             savedContentLengthSet = true;
-            logger.logDebug("Saving application-specified content length for later: " + contentLength);
+            LOGGER.debug("Saving application-specified content length for later: " + contentLength);
             if (compressingSOS != null && compressingSOS.isAborted()) {
                 httpResponse.setHeader(CONTENT_LENGTH_HEADER, String.valueOf(contentLength));
             }
@@ -292,7 +294,7 @@ final class CompressingHttpServletResponse extends HttpServletResponseWrapper {
         contentTypeOK = isCompressableContentType(contentType);
         httpResponse.setContentType(contentType);
         if (!contentTypeOK && compressingSOS != null) {
-            logger.logDebug("Aborting compression since Content-Type is excluded: " + contentType);
+            LOGGER.debug("Aborting compression since Content-Type is excluded: " + contentType);
             maybeAbortCompression();
         }
     }
@@ -313,7 +315,7 @@ final class CompressingHttpServletResponse extends HttpServletResponseWrapper {
     }
 
     private void setCompressionResponseHeaders() {
-        logger.logDebug("Setting compression-related headers");
+        LOGGER.debug("Setting compression-related headers");
         String fullContentEncodingHeader = savedContentEncoding == null
                 ? compressedContentEncoding
                 : savedContentEncoding + ',' + compressedContentEncoding;
@@ -335,13 +337,13 @@ final class CompressingHttpServletResponse extends HttpServletResponseWrapper {
 
     void rawStreamCommitted() {
         assert !compressing;
-        logger.logDebug("Committing response without compression");
+        LOGGER.debug("Committing response without compression");
         setNonCompressionResponseHeaders();
     }
 
     void switchToCompression() {
         assert !compressing;
-        logger.logDebug("Switching to compression in the response");
+        LOGGER.debug("Switching to compression in the response");
         compressing = true;
         setCompressionResponseHeaders();
     }
@@ -359,8 +361,8 @@ final class CompressingHttpServletResponse extends HttpServletResponseWrapper {
      */
     private boolean isAllowedHeader(String header) {
         boolean unallowed = header != null && equalsIgnoreCaseAny(header, UNALLOWED_HEADERS);
-        if (unallowed && logger.isDebug()) {
-            logger.logDebug("Header '" + header + "' cannot be set by application");
+        if (unallowed && LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Header '" + header + "' cannot be set by application");
         }
         return !unallowed;
     }
@@ -432,8 +434,7 @@ final class CompressingHttpServletResponse extends HttpServletResponseWrapper {
                     new CompressingServletOutputStream(httpResponse.getOutputStream(),
                     compressingStreamFactory,
                     this,
-                    context,
-                    logger);
+                    context);
         }
 
         if (!compressingSOS.isClosed()) {
@@ -449,17 +450,17 @@ final class CompressingHttpServletResponse extends HttpServletResponseWrapper {
 
     private boolean mustNotCompress() {
         if (!contentTypeOK) {
-            logger.logDebug("Will not compress since configuration excludes this content type");
+            LOGGER.debug("Will not compress since configuration excludes this content type");
             return true;
         }
         if (savedContentLengthSet
                 && savedContentLength < (long) context.getCompressionThreshold()) {
-            logger.logDebug("Will not compress since page has set a content length which is less than "
+            LOGGER.debug("Will not compress since page has set a content length which is less than "
                     + "the compression threshold: " + savedContentLength);
             return true;
         }
         if (noTransformSet) {
-            logger.logDebug("Will not compress since no-transform was specified");
+            LOGGER.debug("Will not compress since no-transform was specified");
             return true;
         }
         return !isCompressableEncoding(savedContentEncoding);

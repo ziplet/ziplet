@@ -20,6 +20,7 @@ import com.mockrunner.mock.web.MockHttpServletRequest;
 import com.mockrunner.mock.web.MockHttpServletResponse;
 import com.mockrunner.mock.web.WebMockObjectFactory;
 import com.mockrunner.servlet.ServletTestModule;
+import com.planetj.servlet.filter.compression.statistics.CompressingFilterStatsImpl;
 import junit.framework.TestCase;
 
 import javax.servlet.http.HttpServlet;
@@ -102,7 +103,7 @@ public final class CompressingFilterRequestTest extends TestCase {
 
         assertTrue(Arrays.equals(BIG_DOCUMENT, baos.toByteArray()));
 
-        CompressingFilterStats stats = (CompressingFilterStats) factory.getMockServletContext().getAttribute(CompressingFilterStats.STATS_KEY);
+        CompressingFilterStatsImpl stats = (CompressingFilterStatsImpl) factory.getMockServletContext().getAttribute("com.planetj.servlet.filter.compression.statistics.CompressingFilterStatsImpl");
         assertNotNull(stats);
 
         assertEquals(1, stats.getNumRequestsCompressed());

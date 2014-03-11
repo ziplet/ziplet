@@ -15,6 +15,10 @@
  */
 package com.planetj.servlet.filter.compression;
 
+import com.planetj.servlet.filter.compression.statistics.CompressingFilterStats;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
@@ -229,6 +233,8 @@ import java.util.regex.Pattern;
  */
 public final class CompressingFilter implements Filter {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(CompressingFilter.class);
+
     private static final String ALREADY_APPLIED_KEY = "com.planetj.servlet.filter.compression.AlreadyApplied";
     /**
      * One may force the filter to use a particular encoding by setting its
@@ -253,13 +259,16 @@ public final class CompressingFilter implements Filter {
     static final String VERSION = "1.7.1";
     static final String VERSION_STRING = CompressingFilter.class.getName() + '/' + VERSION;
     private CompressingFilterContext context;
-    private CompressingFilterLogger logger;
+    private CompressingFilterStats stats;
 
+    @Override
     public void init(FilterConfig config) throws ServletException {
         assert config != null;
         context = new CompressingFilterContext(config);
-        logger = context.getLogger();
-        logger.log("CompressingFilter has initialized");
+        if(stats != null) {
+            context.setCompressingFilterStats(this.stats);
+        }
+        LOGGER.info("CompressingFilter has initialized");
     }
 
     public void doFilter(ServletRequest request,
@@ -279,15 +288,13 @@ public final class CompressingFilter implements Filter {
             chainResponse = response;
         }
 
-        boolean statsEnabled = context.isStatsEnabled();
 
-        if (statsEnabled) {
-            if (attemptingToDecompressRequest) {
-                context.getStats().incrementNumRequestsCompressed();
-            } else {
-                context.getStats().incrementTotalRequestsNotCompressed();
-            }
+        if (attemptingToDecompressRequest) {
+            context.getStats().incrementNumRequestsCompressed();
+        } else {
+            context.getStats().incrementTotalRequestsNotCompressed();
         }
+
 
         request.setAttribute(ALREADY_APPLIED_KEY, Boolean.TRUE);
         chain.doFilter(chainRequest, chainResponse);
@@ -301,46 +308,41 @@ public final class CompressingFilter implements Filter {
             // call close() in all situations, so we do here. We also close it because if compressed data
             // has been written to the stream, it's almost certainly not valid or even possible to write more
             // to the stream after this filter anyway.
-            logger.logDebug("Closing the response (if not already closed)...");
+            LOGGER.debug("Closing the response (if not already closed)...");
             try {
                 // This will also flush
                 compressingResponse.close();
             } catch (IOException ioe) {
                 // underlying stream might have been closed -- ignore IOException here
-                logger.logDebug("Error while flushing buffer", ioe);
+                LOGGER.debug("Error while flushing buffer", ioe);
             }
 
             if (compressingResponse.isCompressing()) {
                 chainRequest.setAttribute(COMPRESSED_KEY, Boolean.TRUE);
             }
 
-            if (statsEnabled) {
-                context.getStats().incrementNumResponsesCompressed();
-            }
-
+            context.getStats().incrementNumResponsesCompressed();
         } else {
-            if (statsEnabled) {
-                context.getStats().incrementTotalResponsesNotCompressed();
-            }
+            context.getStats().incrementTotalResponsesNotCompressed();
         }
 
     }
 
     private ServletRequest getRequest(ServletRequest request) {
         if (!(request instanceof HttpServletRequest)) {
-            logger.logDebug("Can't compress non-HTTP request");
+            LOGGER.debug("Can't compress non-HTTP request");
             return null;
         }
 
         HttpServletRequest httpRequest = (HttpServletRequest) request;
         String contentEncoding = httpRequest.getHeader(CompressingHttpServletResponse.CONTENT_ENCODING_HEADER);
         if (contentEncoding == null) {
-            logger.logDebug("Request is not compressed, so not decompressing");
+            LOGGER.debug("Request is not compressed, so not decompressing");
             return null;
         }
 
         if (!CompressingStreamFactory.isSupportedRequestContentEncoding(contentEncoding)) {
-            logger.logDebug("Can't decompress request with encoding: " + contentEncoding);
+            LOGGER.debug("Can't decompress request with encoding: " + contentEncoding);
             return null;
         }
 
@@ -352,31 +354,31 @@ public final class CompressingFilter implements Filter {
     private ServletResponse getResponse(ServletRequest request,
             ServletResponse response) {
         if (response.isCommitted() || request.getAttribute(ALREADY_APPLIED_KEY) != null) {
-            logger.logDebug("Response committed or filter has already been applied");
+            LOGGER.debug("Response committed or filter has already been applied");
             return null;
         }
 
         if (!(request instanceof HttpServletRequest) || !(response instanceof HttpServletResponse)) {
-            logger.logDebug("Can't compress non-HTTP request, response");
+            LOGGER.debug("Can't compress non-HTTP request, response");
             return null;
         }
 
         HttpServletRequest httpRequest = (HttpServletRequest) request;
         HttpServletResponse httpResponse = (HttpServletResponse) response;
 
-        if (logger.isDebug()) {
-            logger.logDebug("Request for: '" + httpRequest.getRequestURI() + '\'');
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Request for: '" + httpRequest.getRequestURI() + '\'');
         }
 
         String requestURI = httpRequest.getRequestURI();
         if (!isCompressablePath(requestURI)) {
-            logger.logDebug("Compression disabled for path: " + requestURI);
+            LOGGER.debug("Compression disabled for path: " + requestURI);
             return null;
         }
 
         String userAgent = httpRequest.getHeader("User-Agent");
         if (!isCompressableUserAgent(userAgent)) {
-            logger.logDebug("Compression disabled for User-Agent: " + userAgent);
+            LOGGER.debug("Compression disabled for User-Agent: " + userAgent);
             return null;
         }
 
@@ -390,12 +392,12 @@ public final class CompressingFilter implements Filter {
         assert contentEncoding != null;
 
         if (CompressingStreamFactory.NO_ENCODING.equals(contentEncoding)) {
-            logger.logDebug("Compression not supported or declined by request");
+            LOGGER.debug("Compression not supported or declined by request");
             return null;
         }
 
-        if (logger.isDebug()) {
-            logger.logDebug("Compression supported; using content encoding '" + contentEncoding + '\'');
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Compression supported; using content encoding '" + contentEncoding + '\'');
         }
 
         CompressingStreamFactory compressingStreamFactory =
@@ -428,21 +430,21 @@ public final class CompressingFilter implements Filter {
         //          Therefore, you should only send a Vary: Accept-Encoding header when you have
         //          compressed the content (e.g. Content-Encoding: gzip).
         if (sendVaryHeader(userAgent)) {
-            if (logger.isDebug()) {
-                logger.logDebug("Setting Vary Header because the response *could be compressed*. "
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Setting Vary Header because the response *could be compressed*. "
                         + VARY_HEADER + " : " + CompressingHttpServletResponse.ACCEPT_ENCODING_HEADER);
             }
             httpResponse.addHeader(VARY_HEADER, CompressingHttpServletResponse.ACCEPT_ENCODING_HEADER);
         }
         else {
-            if (logger.isDebug()) {
-                logger.logDebug("Vary header not set, because user agent should not receive the header");
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Vary header not set, because user agent should not receive the header");
             }
         }
     }
 
     public void destroy() {
-        logger.log("CompressingFilter is being destroyed...");
+        LOGGER.info("CompressingFilter is being destroyed...");
     }
 
     /**
@@ -491,5 +493,13 @@ public final class CompressingFilter implements Filter {
     @Override
     public String toString() {
         return VERSION_STRING;
+    }
+
+    /**
+     * Method used to inject stats from outside if you are implementing your own metrics to report stats
+     * @param stats
+     */
+    public void setCompressingFilterStats(CompressingFilterStats stats) {
+        this.stats = stats;
     }
 }
