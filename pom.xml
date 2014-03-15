@@ -9,6 +9,48 @@
 	<version>2.0.1-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
+	<name>ziplet</name>
+	<description>his filter can, based on HTTP headers in a HttpServletRequest, compress data written to the
+		HttpServletResponse, or decompress data read from the request. When supported by the client browser,
+		this can potentially greatly reduce the number of bytes written across the network from and to the client.
+		As a Filter, this class can also be easily added to any J2EE 1.3+ web application.
+	</description>
+
+	<url>https://github.com/nbartels/pjl-comp-filter</url>
+
+	<licenses>
+		<license>
+			<name>The Apache Software License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
+
+	<scm>
+		<connection>scm:git:https://github.com/nbartels/pjl-comp-filter.git</connection>
+		<developerConnection>scm:git:https://github.com/nbartels/pjl-comp-filter.git</developerConnection>
+		<url>https://github.com/nbartels/pjl-comp-filter</url>
+	</scm>
+
+	<developers>
+		<developer>
+			<id>fgaule</id>
+			<name>Federico Gaule</name>
+			<email>federico.gaule@gmail.com</email>
+			<timezone>-3</timezone>
+			<organization>Despegar</organization>
+			<organizationUrl>http://www.despegar.com</organizationUrl>
+		</developer>
+		<developer>
+			<id>fededonna</id>
+			<name>Federico Donnarumma</name>
+			<email>fdonnarumma@gmail.com</email>
+			<timezone>-3</timezone>
+			<organization>Despegar</organization>
+			<organizationUrl>http://www.despegar.com</organizationUrl>
+		</developer>
+	</developers>
+
 	<properties>
 		<sl4j.version>1.7.6</sl4j.version>
 	</properties>
