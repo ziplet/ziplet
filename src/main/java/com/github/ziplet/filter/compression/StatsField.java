@@ -1,4 +1,4 @@
-package com.planetj.servlet.filter.compression;
+package com.github.ziplet.filter.compression;
 
 /**
  * Created by fdonnarumma on 3/11/14.

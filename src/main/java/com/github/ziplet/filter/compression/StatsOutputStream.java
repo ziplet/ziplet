@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.planetj.servlet.filter.compression;
+package com.github.ziplet.filter.compression;
 
-import com.planetj.servlet.filter.compression.statistics.CompressingFilterStats;
+import com.github.ziplet.filter.compression.statistics.CompressingFilterStats;
 
 import java.io.IOException;
 import java.io.OutputStream;

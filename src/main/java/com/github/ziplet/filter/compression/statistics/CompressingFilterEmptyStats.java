@@ -1,11 +1,11 @@
-package com.planetj.servlet.filter.compression.statistics;
+package com.github.ziplet.filter.compression.statistics;
 
 /**
  * Created by fdonnarumma on 3/10/14.
  */
 public class CompressingFilterEmptyStats implements CompressingFilterStats {
 
-    private static final String STATS_KEY = "com.planetj.servlet.filter.compression.statistics.CompressingFilterEmptyStatsImpl";
+    private static final String STATS_KEY = "com.github.ziplet.filter.compression.statistics.CompressingFilterEmptyStatsImpl";
 
     @Override
     public void incrementNumResponsesCompressed() {

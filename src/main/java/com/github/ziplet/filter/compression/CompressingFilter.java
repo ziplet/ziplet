@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.planetj.servlet.filter.compression;
+package com.github.ziplet.filter.compression;
 
-import com.planetj.servlet.filter.compression.statistics.CompressingFilterStats;
+import com.github.ziplet.filter.compression.statistics.CompressingFilterStats;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,7 +60,7 @@ import java.util.regex.Pattern;
  * <pre>
  * &lt;filter&gt;
  *  &lt;filter-name>CompressingFilter&lt;/filter-name&gt;
- *  &lt;filter-class>com.planetj.servlet.filter.compression.CompressingFilter&lt;/filter-class&gt;
+ *  &lt;filter-class>com.github.ziplet.filter.compression.CompressingFilter&lt;/filter-class&gt;
  * &lt;/filter&gt;
  * ...
  * &lt;filter-mapping&gt;
@@ -151,7 +151,7 @@ import java.util.regex.Pattern;
  * <pre>
  * &lt;filter&gt;
  *  &lt;filter-name>CompressingFilter&lt;/filter-name&gt;
- *  &lt;filter-class>com.planetj.servlet.filter.compression.CompressingFilter&lt;/filter-class&gt;
+ *  &lt;filter-class>com.github.ziplet.filter.compression.CompressingFilter&lt;/filter-class&gt;
  *  &lt;init-param&gt;
  *   &lt;param-name&gt;debug&lt;/param-name&gt;
  *   &lt;param-value&gt;true&lt;/param-value&gt;
@@ -235,7 +235,7 @@ public final class CompressingFilter implements Filter {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CompressingFilter.class);
 
-    private static final String ALREADY_APPLIED_KEY = "com.planetj.servlet.filter.compression.AlreadyApplied";
+    private static final String ALREADY_APPLIED_KEY = "com.github.ziplet.filter.compression.AlreadyApplied";
     /**
      * One may force the filter to use a particular encoding by setting its
      * value as an attribute of the {@link
@@ -254,7 +254,7 @@ public final class CompressingFilter implements Filter {
      *
      * @since 1.2
      */
-    public static final String COMPRESSED_KEY = "com.planetj.servlet.filter.compression.Compressed";
+    public static final String COMPRESSED_KEY = "com.github.ziplet.filter.compression.Compressed";
     static final String VARY_HEADER = "Vary";
     static final String VERSION = "1.7.1";
     static final String VERSION_STRING = CompressingFilter.class.getName() + '/' + VERSION;

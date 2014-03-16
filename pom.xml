@@ -31,7 +31,7 @@
 	<scm>
 		<connection>scm:git:git@github.com:nbartels/pjl-comp-filter.git</connection>
 		<developerConnection>scm:git:git@github.com:nbartels/pjl-comp-filter.git</developerConnection>
-		<url>git@github.com:nbartels/pjl-comp-filter.git</url>
+		<url>git@github.com:nbartels/pjl-comp-filter.gitA</url>
 	</scm>
 	<developers>
 		<developer>
