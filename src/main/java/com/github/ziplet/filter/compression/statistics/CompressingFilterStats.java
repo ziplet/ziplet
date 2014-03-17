@@ -1,4 +1,4 @@
-package com.planetj.servlet.filter.compression.statistics;
+package com.github.ziplet.filter.compression.statistics;
 
 /**
  * Created by fdonnarumma on 3/10/14.

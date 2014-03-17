@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.planetj.servlet.filter.compression;
+package com.github.ziplet.filter.compression;
 
 import javax.servlet.ServletInputStream;
 import javax.servlet.ServletRequest;

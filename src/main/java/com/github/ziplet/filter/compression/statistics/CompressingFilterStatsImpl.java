@@ -13,10 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.planetj.servlet.filter.compression.statistics;
-
-import com.planetj.servlet.filter.compression.StatsInputStream;
-import com.planetj.servlet.filter.compression.StatsOutputStream;
+package com.github.ziplet.filter.compression.statistics;
 
 import java.io.Serializable;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -24,7 +21,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * <p>This class provides runtime statistics on the performance of
- * {@link com.planetj.servlet.filter.compression.CompressingFilter}. If stats are enabled, then an instance of this
+ * {@link com.github.ziplet.filter.compression.CompressingFilter}. If stats are enabled, then an instance of this
  * object will be available in the servlet context under the key
  * {@link #STATS_KEY}. It can be retrieved and used like so:</p>
  * <p/>
@@ -40,14 +37,14 @@ import java.util.concurrent.atomic.AtomicLong;
  * @author Sean Owen
  * @since 1.1
  */
-public class CompressingFilterStatsImpl implements Serializable, CompressingFilterStats {
+public class CompressingFilterStatsImpl implements Serializable, com.github.ziplet.filter.compression.statistics.CompressingFilterStats {
 
     private static final long serialVersionUID = -2246829834191152845L;
     /**
      * Key under which a {@link CompressingFilterStatsImpl} object can be found in
      * the servlet context.
      */
-    private static final String STATS_KEY = "com.planetj.servlet.filter.compression.statistics.CompressingFilterStatsImpl";
+    private static final String STATS_KEY = "com.github.ziplet.filter.compression.statistics.CompressingFilterStatsImpl";
     /**
      * @serial
      */
@@ -82,7 +79,7 @@ public class CompressingFilterStatsImpl implements Serializable, CompressingFilt
     private AtomicLong requestCompressedBytes = new AtomicLong();
 
     /**
-     * @return the number of responses which {@link com.planetj.servlet.filter.compression.CompressingFilter} has
+     * @return the number of responses which {@link com.github.ziplet.filter.compression.CompressingFilter} has
      * compressed.
      */
     public int getNumResponsesCompressed() {
@@ -95,7 +92,7 @@ public class CompressingFilterStatsImpl implements Serializable, CompressingFilt
     }
 
     /**
-     * @return the number of responses which {@link com.planetj.servlet.filter.compression.CompressingFilter} has
+     * @return the number of responses which {@link com.github.ziplet.filter.compression.CompressingFilter} has
      * processed but <em>not</em> compressed for some reason (compression not
      * supported by the browser, for example).
      */
@@ -117,7 +114,7 @@ public class CompressingFilterStatsImpl implements Serializable, CompressingFilt
     }
 
     /**
-     * @return total number of bytes written to the {@link com.planetj.servlet.filter.compression.CompressingFilter} in
+     * @return total number of bytes written to the {@link com.github.ziplet.filter.compression.CompressingFilter} in
      * responses.
      */
     public long getResponseInputBytes() {
@@ -134,7 +131,7 @@ public class CompressingFilterStatsImpl implements Serializable, CompressingFilt
 
     /**
      * @return total number of compressed bytes written by the
-     * {@link com.planetj.servlet.filter.compression.CompressingFilter} to the client in responses.
+     * {@link com.github.ziplet.filter.compression.CompressingFilter} to the client in responses.
      */
     public long getResponseCompressedBytes() {
         return responseCompressedBytes.get();
@@ -159,7 +156,7 @@ public class CompressingFilterStatsImpl implements Serializable, CompressingFilt
     }
 
     /**
-     * @return the number of requests which {@link com.planetj.servlet.filter.compression.CompressingFilter} has
+     * @return the number of requests which {@link com.github.ziplet.filter.compression.CompressingFilter} has
      * compressed.
      * @since 1.6
      */
@@ -173,7 +170,7 @@ public class CompressingFilterStatsImpl implements Serializable, CompressingFilt
     }
 
     /**
-     * @return the number of requests which {@link com.planetj.servlet.filter.compression.CompressingFilter} has
+     * @return the number of requests which {@link com.github.ziplet.filter.compression.CompressingFilter} has
      * processed but <em>not</em> compressed for some reason (no compression
      * requested, for example).
      * @since 1.6
@@ -188,7 +185,7 @@ public class CompressingFilterStatsImpl implements Serializable, CompressingFilt
     }
 
     /**
-     * @return total number of bytes written to the {@link com.planetj.servlet.filter.compression.CompressingFilter} in
+     * @return total number of bytes written to the {@link com.github.ziplet.filter.compression.CompressingFilter} in
      * requests.
      * @since 1.6
      */
@@ -198,7 +195,7 @@ public class CompressingFilterStatsImpl implements Serializable, CompressingFilt
 
     /**
      * @return total number of compressed bytes written by the
-     * {@link com.planetj.servlet.filter.compression.CompressingFilter} to the client in requests.
+     * {@link com.github.ziplet.filter.compression.CompressingFilter} to the client in requests.
      * @since 1.6
      */
     public long getRequestCompressedBytes() {
@@ -228,12 +225,12 @@ public class CompressingFilterStatsImpl implements Serializable, CompressingFilt
     }
 
     @Override
-    public  void notifyRequestBytesRead(long read) {
+    public void notifyRequestBytesRead(long read) {
         requestInputBytes.addAndGet(read);
     }
 
     @Override
-    public  void notifyCompressedRequestBytesRead(long read) {
+    public void notifyCompressedRequestBytesRead(long read) {
         this.requestCompressedBytes.addAndGet(read);
     }
 
