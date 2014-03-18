@@ -8,24 +8,39 @@ Features
 
 Why might you want to use this solution compared to others?
 
-Little in-memory buffering
-Handles compressed requests too
-Selective compression based on content type, size, or user agent
-Exposes compression statistics
-Installation
+* Little in-memory buffering
+* Handles compressed requests too
+* Selective compression based on content type, size, or user agent
+* Exposes compression statistics
+* Easy Logging integration (SL4J)
+* Installation
 
-Add the ziplet-XX.jar file containing CompressingFilter to your web application's WEB-INF/lib directory.
+Add the ziplet-XX.jar file containing CompressingFilter to your web application's WEB-INF/lib directory:
+
+```xml
+    <dependency>
+        <groupId>com.github.ziplet</groupId>
+        <artifactId>ziplet</artifactId>
+        <version>2.0.0-SNAPSHOT</version>
+    </dependency>
+```
+
 Add the following entries to your web.xml deployment descriptor:
- <filter>
-  <filter-name>CompressingFilter</filter-name>
-  <filter-class>com.planetj.servlet.filter.compression.CompressingFilter</filter-class>
- </filter>
- ...
- <filter-mapping>
-  <filter-name>CompressingFilter</filter-name>
-  <url-pattern>/*</url-pattern>
- </filter-mapping>
- 
+
+```xml
+    <filter>
+        <filter-name>CompressingFilter</filter-name>
+        <filter-class>com.github.ziplet.filter.compression.CompressingFilter</filter-class>
+    </filter>
+```
+
+```xml
+    <filter-mapping>
+        <filter-name>CompressingFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+```
+
 Configuration
 -------------
 
@@ -51,20 +66,17 @@ CompressingFilter supports the following parameters:
 
 **noVaryHeaderPatterns** (optional): Like includeUserAgentPatterns. Requests with User-Agent headers whose value matches one of these regular expressions result in a response that does not contain the Vary-header Since version 1.8
 
-**javaUtilLogger** (optional): if specified, the named java.util.logging.Logger will also receive log messages from this filter.
-
-**jakartaCommonsLogger** (optional): if specified the named Jakarta Commons Log will also receive log messages from this filter.
-
 These values are configured in web.xml as well with init-param elements:
- 	<filter>
-		<filter-name>CompressingFilter</filter-name>
-		<filter-class>com.planetj.servlet.filter.compression.CompressingFilter</filter-class>
-		<init-param>
-			<param-name>debug</param-name>
-			<param-value>true</param-value>
-		</init-param>
-	</filter>
- 
+```xml
+    <filter>
+        <filter-name>CompressingFilter</filter-name>
+        <filter-class>com.github.ziplet.filter.compression.CompressingFilter</filter-class>
+        <init-param>
+            <param-name>debug</param-name>
+            <param-value>true</param-value>
+        </init-param>
+    </filter>
+```
 Supported compression algorithms
 --------------------------------
 
@@ -72,23 +84,23 @@ Response
 
 This filter supports the following compression algorithms when compressing data to the repsonse, as specified in the "Accept-Encoding" HTTP request header:
 
-gzip
-x-gzip
-compress
-x-compress
-deflate
-identity (that is, no compression)
-Request
+*gzip
+*x-gzip
+*compress
+*x-compress
+*deflate
+*identity (that is, no compression)
+*Request
 
 This filter supports the following compression algorithms when decompressing data from the request body, as specified in the "Content-Encoding" HTTP request header:
 
-gzip
-x-gzip
-compress
-x-compress
-deflate
-identity
-Controlling runtime behavior
+*gzip
+*x-gzip
+*compress
+*x-compress
+*deflate
+*identity
+*Controlling runtime behavior
 
 An application may force the encoding / compression used by setting an "Accept-Encoding" value into the request as an attribute under the key FORCE_ENCODING_KEY. Obviously this has to be set upstream from the filter, not downstream.
 
