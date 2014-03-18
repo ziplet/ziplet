@@ -32,7 +32,9 @@ Configuration
 CompressingFilter supports the following parameters:
 
 **debug** (optional): if set to "true", additional debug information will be written to the servlet log. Defaults to false.
+
 **compressionThreshold** (optional): sets the size of the smallest response that will be compressed, in bytes. That is, if less than compressionThreshold bytes are written to the response, it will not be compressed and the response will go to the client unmodified. If 0, compression always begins immediately. Defaults to 1024.
+
 **statsEnabled** (optional): enables collection of statistics. See CompressingFilterStats. Defaults to false. Don't use this in high traffic environments!
 
 **includeContentTypes** (optional): if specified, this is treated as a comma-separated list of content types (e.g. text/html,text/xml). The filter will attempt to only compress responses which specify one of these values as its content type, for example via ServletResponse.setContentType(String). Note that the filter does not know the response content type at the time it is applied, and so must apply itself and later attempt to disable compression when content type has been set. This will fail if the response has already been committed. Also note that this parameter cannot be specified if excludeContentTypes is too.
@@ -42,7 +44,9 @@ CompressingFilter supports the following parameters:
 **includePathPatterns** (optional): if specified, this is treated as a comma-separated list of regular expressions (of the type accepted by Pattern) which match exactly those paths which should be compressed by this filter. Anything else will not be compressed. One can also merely apply the filter to a subset of all URIs served by the web application using standard filter-mapping elements in web.xml; this element provides more fine-grained control for when that mechanism is insufficient. "Paths" here means values returned by HttpServletRequest.getRequestURI(). Note that the regex must match the filename exactly; pattern "static" does not match everything containing the string "static. Use ".*static.*" for that, for example. This cannot be specified if excludeFileTypes is too.
 
 **excludePathPatterns** (optional): same as above, but specifies a list of patterns which match paths that should not be compressed. Everything else will be compressed.
+
 **includeUserAgentPatterns** (optional): Like includePathPatterns. Only requests with User-Agent headers whose value matches one of these regular expressions will be compressed. Can't be specified if excludeUserAgentPatterns is too.
+
 **excludeUserAgentPatterns** (optional): as above, requests whose User-Agent header matches one of these patterns will not be compressed.
 
 **noVaryHeaderPatterns** (optional): Like includeUserAgentPatterns. Requests with User-Agent headers whose value matches one of these regular expressions result in a response that does not contain the Vary-header Since version 1.8
