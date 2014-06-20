@@ -261,6 +261,11 @@ public final class CompressingFilter implements Filter {
     private CompressingFilterContext context;
     private CompressingFilterStats stats;
 
+    public CompressingFilter(){}
+
+    public CompressingFilter(){
+
+    }
     @Override
     public void init(FilterConfig config) throws ServletException {
         assert config != null;
