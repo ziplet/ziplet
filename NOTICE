@@ -1,0 +1,31 @@
+Copyright (C) 2006 and onwards Sean Owen
+
+Licensed under the Apache License, Version 2.0
+
+This project includes: 
+
+  annotations-api under Apache License, Version 2.0
+  ant under The Apache Software License, Version 2.0
+  bcel under The Apache Software License, Version 2.0
+  catalina under Apache License, Version 2.0
+  Eclipse ECJ under Eclipse Public License v1.0
+  el-api under Apache License, Version 2.0
+  jakarta-regexp under The Apache Software License, Version 2.0
+  JarAnalyzer under Kirkk.com BSD License
+  jasper under Apache License, Version 2.0
+  jasper-el under Apache License, Version 2.0
+  jdom under JDOM license (Apache style), https://github.com/hunterhacker/jdom/blob/master/LICENSE.txt
+  jsp-api under Apache License, Version 2.0
+  juli under Apache License, Version 2.0
+  JUnit under Common Public License Version 1.0
+  Logging under The Apache Software License, Version 2.0
+  MockRunner-Core under Mockrunner License, based on Apache Software License, version 1.1
+  MockRunner-Servlet under Mockrunner License, based on Apache Software License, version 1.1
+  Neko HTML under The Apache Software License, Version 2.0
+  oro under The Apache Software License, Version 1.1
+  regexp under The Apache Software License, Version 2.0
+  servlet-api under Apache License, Version 2.0
+  SLF4J API Module under MIT License
+  xercesImpl under The Apache Software License, Version 2.0
+  ziplet under The Apache Software License, Version 2.0
+
