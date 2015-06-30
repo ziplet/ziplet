@@ -118,3 +118,8 @@ The filter will not compress if the response sets Cache-Control: no-transform he
 The filter attempts to modify the ETag response header, if present, when compressing. This is because the compressed response must be considered a separate entity by caches. It simply appends, for example, "-gzip" to the ETag header value when compressing with gzip. This is not guaranteed to work in all containers, in the sense that some containers may not properly associated this ETag with the compressed content and simply return the response again.
 
 The filter normally sets the Vary response header to indicate that a different response may be returned based on the Accept-Encoding header of the request. This can be configured in the web.xml.
+
+License
+-------
+
+This project is published under the Apache License, Version 2.0. For details see files LICENSE and NOTICE.
