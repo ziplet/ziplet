@@ -109,7 +109,7 @@ Caveats and Notes
 
 The filter requires Java 5 and J2EE 1.4 or better.
 
-Note that if this filter decides that it should try to compress the response, it will close the response (whether or not it ends up compressing the response). No more can be written to the response after this filter has been applied; this should never be necessary anyway. Put this filter ahead of any filters that might try to write to the repsonse, since presumably you want this content compressed too anyway.
+Note that if this filter decides that it should try to compress the response, it will close the response (whether or not it ends up compressing the response). No more can be written to the response after this filter has been applied; this should never be necessary anyway. Put this filter ahead of any filters that might try to write to the response, since presumably you want this content compressed too anyway.
 
 If a OutputStream.flush() occurs before the filter has decided whether to compress or not, it will be forced into compression mode.
 
