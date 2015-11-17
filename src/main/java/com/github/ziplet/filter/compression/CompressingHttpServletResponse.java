@@ -15,15 +15,14 @@
  */
 package com.github.ziplet.filter.compression;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.servlet.ServletOutputStream;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpServletResponseWrapper;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpServletResponseWrapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Implementation of {@link HttpServletResponse} which will optionally compress
@@ -113,8 +112,7 @@ final class CompressingHttpServletResponse extends HttpServletResponseWrapper {
                 maybeAbortCompression();
             }
         } else if (CONTENT_LENGTH_HEADER.equalsIgnoreCase(name)) {
-            // Not setContentLength(); we want to potentially accommodate a long value here
-            doSetContentLength(Long.parseLong(value));
+            setContentLengthLong(Long.parseLong(value));
         } else if (CONTENT_TYPE_HEADER.equalsIgnoreCase(name)) {
             setContentType(value);
         } else if (ETAG_HEADER.equalsIgnoreCase(name)) {
@@ -173,8 +171,7 @@ final class CompressingHttpServletResponse extends HttpServletResponseWrapper {
                 maybeAbortCompression();
             }
         } else if (CONTENT_LENGTH_HEADER.equalsIgnoreCase(name)) {
-            // Not setContentLength(); we want to potentially accommodate a long value here
-            doSetContentLength(Long.parseLong(value));
+            setContentLengthLong(Long.parseLong(value));
         } else if (CONTENT_TYPE_HEADER.equalsIgnoreCase(name)) {
             setContentType(value);
         } else if (ETAG_HEADER.equalsIgnoreCase(name)) {
@@ -269,13 +266,12 @@ final class CompressingHttpServletResponse extends HttpServletResponseWrapper {
 
     @Override
     public void setContentLength(int contentLength) {
-        // Internally we want to be able to handle a long contentLength, but the ServletResponse method
-        // is declared to take an int. So we delegate to a private version that handles a long, and reuse
-        // that version elsewhere here.
-        doSetContentLength((long) contentLength);
+		// since servlet spec 3.1 we can use setContentLengthLong to accommodate long pages
+        setContentLengthLong((long) contentLength);
     }
 
-    private void doSetContentLength(long contentLength) {
+	// Servlet spec 3.1
+    public void setContentLengthLong(long contentLength) {
         if (compressing) {
             // do nothing -- caller-supplied content length is not meaningful
             LOGGER.debug("Ignoring application-specified content length since response is compressed");
