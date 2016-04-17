@@ -53,22 +53,24 @@ import java.util.regex.Pattern;
  * <h3>Installation</h3>
  *
  * <ol>
- * <li>Add the {@code pjl-comp-filter-XX.jar} file containing CompressingFilter
+ *  <li>Add the {@code pjl-comp-filter-XX.jar} file containing CompressingFilter
  * to your web application's {@code WEB-INF/lib} directory.</li>
- * <li>Add the following entries to your {@code web.xml} deployment
- * descriptor:<br/>
- * <pre>
- * &lt;filter&gt;
- *  &lt;filter-name>CompressingFilter&lt;/filter-name&gt;
- *  &lt;filter-class>com.github.ziplet.filter.compression.CompressingFilter&lt;/filter-class&gt;
- * &lt;/filter&gt;
+ *  <li>Add the following entries to your {@code web.xml} deployment
+ * descriptor: <pre>
+ * {@code
+ *
+ * <filter>
+ *  <filter-name>CompressingFilter</filter-name>
+ *  <filter-class>com.github.ziplet.filter.compression.CompressingFilter</filter-class>
+ * </filter>
  * ...
- * &lt;filter-mapping&gt;
- *  &lt;filter-name>CompressingFilter&lt;/filter-name&gt;
- *  &lt;url-pattern>/*&lt;/url-pattern&gt;
- * &lt;/filter-mapping&gt;
- * </pre>
- * </li>
+ * <filter-mapping>
+ *  <filter-name>CompressingFilter</filter-name>
+ *  <url-pattern>/*</url-pattern>
+ * </filter-mapping>
+ * }
+ *      </pre>
+ *  </li>
  * </ol>
  *
  * <h3>Configuration</h3>
@@ -147,16 +149,18 @@ import java.util.regex.Pattern;
  * </ul>
  *
  * <p>These values are configured in {@code web.xml} as well with init-param
- * elements:<br/>
- * <pre>
- * &lt;filter&gt;
- *  &lt;filter-name>CompressingFilter&lt;/filter-name&gt;
- *  &lt;filter-class>com.github.ziplet.filter.compression.CompressingFilter&lt;/filter-class&gt;
- *  &lt;init-param&gt;
- *   &lt;param-name&gt;debug&lt;/param-name&gt;
- *   &lt;param-value&gt;true&lt;/param-value&gt;
- *  &lt;/init-param&gt;
- * &lt;/filter&gt;
+ * elements: <pre>
+ * {@code
+ *
+ *  <filter>
+ *      <filter-name>CompressingFilterStatsImpl</filter-name>
+ *      <filter-class>com.github.ziplet.filter.compression.CompressingFilter</filter-class>
+ *      <init-param>
+ *          <param-name>debug</param-name>
+ *          <param-value>true</param-value>
+ *      </init-param>
+ *  </filter>
+ * }
  * </pre>
  *
  * <h3>Supported compression algorithms</h3>
@@ -497,7 +501,7 @@ public final class CompressingFilter implements Filter {
 
     /**
      * Method used to inject stats from outside if you are implementing your own metrics to report stats
-     * @param stats
+     * @param stats filter status
      */
     public void setCompressingFilterStats(CompressingFilterStats stats) {
         this.stats = stats;

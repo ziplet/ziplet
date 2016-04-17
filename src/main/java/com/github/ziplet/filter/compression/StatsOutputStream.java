@@ -23,7 +23,7 @@ import java.io.OutputStream;
 /**
  * An {@link OutputStream} that decorates another {@link OutputStream} and notes
  * when bytes are written to the stream. Callers create an instance of
- * {@link StatsOutputStream} with an instance of {@link StatsCallback}, which
+ * {@link StatsOutputStream} with an instance of {@link OutputStream}, which
  * receives notification of writes. This information might be used to tally the
  * number of bytes written to a stream.
  *

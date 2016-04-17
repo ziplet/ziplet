@@ -23,7 +23,7 @@ import java.io.InputStream;
 /**
  * An {@link InputStream} that decorates another {@link InputStream} and notes
  * when bytes are read from the stream. Callers create an instance of
- * {@link StatsInputStream} with an instance of {@link StatsCallback}, which
+ * {@link StatsInputStream} with an instance of {@link InputStream}, which
  * receives notification of reads. This information might be used to tally the
  * number of bytes read from a stream.
  *

@@ -24,9 +24,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * {@link com.github.ziplet.filter.compression.CompressingFilter}. If stats are enabled, then an instance of this
  * object will be available in the servlet context under the key
  * {@link #STATS_KEY}. It can be retrieved and used like so:</p>
- * <p/>
- * <
- * pre>
+ * <pre>
  * ServletContext ctx = ...;
  * // in a JSP, "ctx" is already available as the "application" variable
  * CompressingFilterStatsImpl stats = (CompressingFilterStatsImpl) ctx.getAttribute(CompressingFilterStatsImpl.STATS_KEY);
@@ -107,10 +105,12 @@ public class CompressingFilterStatsImpl implements Serializable, com.github.zipl
 
     /**
      * @deprecated use {@link #getResponseInputBytes()}
+     * @return total number of bytes written to the {@link com.github.ziplet.filter.compression.CompressingFilter} in
+     * responses.
      */
     @Deprecated
     public long getInputBytes() {
-        return responseInputBytes.get();
+        return getResponseInputBytes();
     }
 
     /**
@@ -123,10 +123,12 @@ public class CompressingFilterStatsImpl implements Serializable, com.github.zipl
 
     /**
      * @deprecated use {@link #getResponseCompressedBytes()}
+     * @return total number of compressed bytes written by the
+     * {@link com.github.ziplet.filter.compression.CompressingFilter} to the client in responses.
      */
     @Deprecated
     public long getCompressedBytes() {
-        return responseCompressedBytes.get();
+        return getResponseCompressedBytes();
     }
 
     /**
@@ -151,8 +153,8 @@ public class CompressingFilterStatsImpl implements Serializable, com.github.zipl
      * (typically) greater than 1, not less than 1.
      */
     public double getResponseAverageCompressionRatio() {
-        return responseCompressedBytes.get() == 0L ? 0.0 :
-                (double) responseInputBytes.get() / (double) responseCompressedBytes.get();
+        return getResponseCompressedBytes() == 0L ? 0.0 :
+                (double) getResponseInputBytes() / (double) getResponseCompressedBytes();
     }
 
     /**
