@@ -1,7 +1,9 @@
 ziplet
 ===============
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.ziplet/ziplet/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.github.ziplet/ziplet)
 
 This filter can, based on HTTP headers in a HttpServletRequest, compress data written to the HttpServletResponse, or decompress data read from the request. When supported by the client browser, this can potentially greatly reduce the number of bytes written across the network from and to the client. As a Filter, this class can also be easily added to any J2EE 1.3+ web application.
+
 
 Features
 --------
