@@ -2,13 +2,12 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-
 	<groupId>com.github.ziplet</groupId>
 	<artifactId>ziplet</artifactId>
 	<version>2.2.0-SNAPSHOT</version>
 	<packaging>jar</packaging>
 	<name>ziplet</name>
-	<description>his filter can, based on HTTP headers in a HttpServletRequest, compress data written to the
+	<description>This filter can, based on HTTP headers in a HttpServletRequest, compress data written to the
 		HttpServletResponse, or decompress data read from the request. When supported by the client browser,
 		this can potentially greatly reduce the number of bytes written across the network from and to the client.
 		As a Filter, this class can also be easily added to any J2EE 1.3+ web application.
@@ -48,6 +47,7 @@
 
 	<properties>
 		<sl4j.version>1.7.6</sl4j.version>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 
 	<dependencies>
