@@ -266,11 +266,11 @@ final class CompressingHttpServletResponse extends HttpServletResponseWrapper {
 
     @Override
     public void setContentLength(int contentLength) {
-		// since servlet spec 3.1 we can use setContentLengthLong to accommodate long pages
+        // since servlet spec 3.1 we can use setContentLengthLong to accommodate long pages
         setContentLengthLong((long) contentLength);
     }
 
-	// Servlet spec 3.1
+    // Servlet spec 3.1
     public void setContentLengthLong(long contentLength) {
         if (compressing) {
             // do nothing -- caller-supplied content length is not meaningful

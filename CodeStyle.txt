@@ -1,0 +1,5 @@
+Before you start hacking, adjust your Java editor preferences to the following:
+
+- Character encoding: UTF-8
+- Use spaces instead of tabs, with a default indentation of 4 spaces.
+- End of line (EOL) style set to linefeed/LF (Unix).
