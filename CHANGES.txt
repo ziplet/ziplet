@@ -1,3 +1,6 @@
+Version 2.2.0 2017-03-28
+Fixing the ETag behaviour 
+
 Version 2.1.0 2016-04-17
 - Fixed issue concerning servlet spec 3.1's new setContentLengthLong function
 
