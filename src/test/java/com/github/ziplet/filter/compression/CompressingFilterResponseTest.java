@@ -26,12 +26,17 @@ import junit.framework.TestCase;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.Random;
+import java.util.zip.Deflater;
 import java.util.zip.DeflaterOutputStream;
+import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
+import java.util.zip.InflaterInputStream;
 
 /**
  * Tests {@link CompressingFilter} compressing responses.
@@ -43,6 +48,7 @@ public final class CompressingFilterResponseTest extends TestCase {
     private static final String TEST_ENCODING = "ISO-8859-1";
     static final String SMALL_DOCUMENT = "Test";
     static final String BIG_DOCUMENT;
+    static final String BIG_TEXT_DOCUMENT;
     private static final String EMPTY = "";
 
     static {
@@ -57,6 +63,16 @@ public final class CompressingFilterResponseTest extends TestCase {
             // can't happen
         }
         BIG_DOCUMENT = temp;
+    }
+    static {
+        // Make up a random, but repeatable long ASCII-7 String that is non-trivially compressible
+        Random r = new Random(0xDEADBEEFL);
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < 1000; i++) {
+            int c = r.nextInt(Character.MIN_HIGH_SURROGATE);
+            sb.append(String.valueOf(c)).append(":").append(Character.getName(c)).append("\n");
+		}
+        BIG_TEXT_DOCUMENT = sb.toString();
     }
     private WebMockObjectFactory factory;
     private ServletTestModule module;
@@ -283,6 +299,83 @@ public final class CompressingFilterResponseTest extends TestCase {
         doTestNoOutput();
     }
 
+    public void testCompressionLevel() throws IOException {
+		int[] compressionLevels = new int[] {
+				Deflater.BEST_SPEED, // 1
+				Deflater.DEFAULT_COMPRESSION, // -1 -> 6
+				Deflater.BEST_COMPRESSION, // 9
+				};
+
+		String[] acceptEncodings = new String[]{
+				"deflate",
+				"gzip",
+				};
+
+		for (String acceptEncoding : acceptEncodings) {
+			long[] responseLengths = new long[compressionLevels.length];
+
+			for (int i = 0; i < compressionLevels.length; i++) {
+				// override module to set different config
+		        factory = new WebMockObjectFactory();
+		        MockFilterConfig config = factory.getMockFilterConfig();
+		        config.setInitParameter("debug", "true");
+		        config.setInitParameter("statsEnabled", "true");
+		        config.setInitParameter("compressionThreshold", String.valueOf(0));
+		        config.setInitParameter("compressionLevel", String.valueOf(compressionLevels[i]));
+		        module = new ServletTestModule(factory);
+		        module.addFilter(new CompressingFilter(), true);
+		        module.setDoChain(true);
+		        factory.getMockResponse().setCharacterEncoding(TEST_ENCODING);
+
+		        MockHttpServletRequest request = factory.getMockRequest();
+		        request.addHeader("Accept-Encoding", acceptEncoding);
+	            module.setServlet(new HttpServlet() {
+	                @Override
+	                public void doGet(HttpServletRequest request,  HttpServletResponse response) throws IOException {
+	                    response.getWriter().print(BIG_TEXT_DOCUMENT);
+	                }
+	            });
+
+	            module.doGet();
+	            MockHttpServletResponse response = factory.getMockResponse();
+
+	            // response should be OK
+	            assertEquals(HttpServletResponse.SC_OK, response.getStatusCode());
+	            assertFalse(response.wasRedirectSent());
+	            assertFalse(response.wasErrorSent());
+
+	            // response should be compressed
+                assertTrue(response.containsHeader("Content-Encoding"));
+                assertEquals(acceptEncoding, response.getHeader("Content-Encoding"));
+                assertEquals(Boolean.TRUE, module.getRequestAttribute(CompressingFilter.COMPRESSED_KEY));
+                String moduleOutput = module.getOutput();
+                assertFalse("Response body not compressed", BIG_TEXT_DOCUMENT.equals(moduleOutput));
+
+                // uncompressed response body should match expected
+                final byte[] uncompressedBytes;
+                if ("gzip".equals(acceptEncoding)) uncompressedBytes = uncompressGzip(moduleOutput.getBytes(TEST_ENCODING));
+                else if ("deflate".equals(acceptEncoding)) uncompressedBytes = uncompressDeflate(moduleOutput.getBytes(TEST_ENCODING));
+                else throw new IllegalStateException("Unhandled encoding: " + acceptEncoding);
+                assertEquals("Response body uncompression mismatch", BIG_TEXT_DOCUMENT, new String(uncompressedBytes, TEST_ENCODING));
+
+                // compression ratio should be sane
+		        CompressingFilterStatsImpl stats = (CompressingFilterStatsImpl) factory.getMockServletContext().getAttribute("com.github.ziplet.filter.compression.statistics.CompressingFilterStatsImpl");
+		        assertNotNull(stats);
+
+		        assertEquals(1, stats.getNumResponsesCompressed());
+		        assertEquals(0, stats.getTotalResponsesNotCompressed());
+		        assertTrue("response length did not shrink by compression", BIG_TEXT_DOCUMENT.length() > stats.getResponseCompressedBytes());
+
+                // compression ratio should monotonically increase with increasing compressionLevels
+		        responseLengths[i] = stats.getResponseCompressedBytes();
+		        // compare to previous, if any
+		        if (i > 0) {
+			        assertTrue("Compression ratio did not improve from " + acceptEncoding + " level " + compressionLevels[i-1] + " to " + compressionLevels[i], responseLengths[i-1] > responseLengths[i]);
+			    }
+		    }
+		}
+	}
+
     private void doTestNoOutput() {
         module.setServlet(new HttpServlet() {
             @Override
@@ -354,6 +447,30 @@ public final class CompressingFilterResponseTest extends TestCase {
         }
 
 
+    }
+
+    private static byte[] uncompressGzip(byte[] input) throws IOException {
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		ByteArrayInputStream bais = new ByteArrayInputStream(input);
+		byte[] buffer = new byte[1024];
+		GZIPInputStream gzipIn = new GZIPInputStream(bais);
+		int len;
+		while ((len = gzipIn.read(buffer)) > 0) {
+			baos.write(buffer, 0, len);
+		}
+		return baos.toByteArray();
+    }
+
+    private static byte[] uncompressDeflate(byte[] input) throws IOException {
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		ByteArrayInputStream bais = new ByteArrayInputStream(input);
+		byte[] buffer = new byte[1024];
+		InflaterInputStream deflateIn = new InflaterInputStream(bais);
+		int len;
+		while ((len = deflateIn.read(buffer)) > 0) {
+			baos.write(buffer, 0, len);
+		}
+		return baos.toByteArray();
     }
 
     private static byte[] getCompressedOutput(byte[] output) throws IOException {

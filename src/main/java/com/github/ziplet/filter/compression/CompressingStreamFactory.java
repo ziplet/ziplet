@@ -30,6 +30,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
+import java.util.zip.Deflater;
 import java.util.zip.DeflaterOutputStream;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
@@ -339,14 +340,21 @@ abstract class CompressingStreamFactory {
 
     private static class GZIPCompressingStreamFactory extends CompressingStreamFactory {
 
+        private static class LevelGZIPOutputStream extends GZIPOutputStream {
+            public LevelGZIPOutputStream(OutputStream out, int compressionLevel) throws IOException {
+                super(out);
+                def.setLevel(compressionLevel);
+            }
+        }
+
         @Override
         CompressingOutputStream getCompressingStream(final OutputStream outputStream,
                 final CompressingFilterContext context) throws IOException {
             return new CompressingOutputStream() {
                 private final DeflaterOutputStream gzipOutputStream =
-                        new GZIPOutputStream(
+                        new LevelGZIPOutputStream(
                         CompressingStreamFactory.maybeWrapStatsOutputStream(
-                        outputStream, context, StatsField.RESPONSE_COMPRESSED_BYTES));
+                        outputStream, context, StatsField.RESPONSE_COMPRESSED_BYTES), context.getCompressionLevel());
                 private final OutputStream statsOutputStream =
                         CompressingStreamFactory.maybeWrapStatsOutputStream(
                         gzipOutputStream, context, StatsField.RESPONSE_INPUT_BYTES);
@@ -426,7 +434,7 @@ abstract class CompressingStreamFactory {
                 private final DeflaterOutputStream deflaterOutputStream =
                         new DeflaterOutputStream(
                         CompressingStreamFactory.maybeWrapStatsOutputStream(
-                        outputStream, context, StatsField.RESPONSE_COMPRESSED_BYTES));
+                        outputStream, context, StatsField.RESPONSE_COMPRESSED_BYTES), new Deflater(context.getCompressionLevel()));
                 private final OutputStream statsOutputStream =
                         CompressingStreamFactory.maybeWrapStatsOutputStream(
                         deflaterOutputStream, context, StatsField.RESPONSE_INPUT_BYTES);
