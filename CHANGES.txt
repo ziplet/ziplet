@@ -1,3 +1,6 @@
+Version 2.2.0-SNAPSHOT
+- Added compressionLevel parameter to control gzip/deflate compression
+
 Version 2.2.0 2017-03-28
 Fixing the ETag behaviour
 

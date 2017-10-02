@@ -53,6 +53,8 @@ CompressingFilter supports the following parameters:
 
 **compressionThreshold** (optional): sets the size of the smallest response that will be compressed, in bytes. That is, if less than compressionThreshold bytes are written to the response, it will not be compressed and the response will go to the client unmodified. If 0, compression always begins immediately. Defaults to 1024.
 
+**compressionLevel** (optional): sets the compression level used for response gzip/deflate compression, from 1 (fastest compression, less CPU) to 9 (best compression, more CPU), or -1 (platform default, currently equivalent to 6). Defaults to -1.
+
 **statsEnabled** (optional): enables collection of statistics. See CompressingFilterStats. Defaults to false. Don't use this in high traffic environments!
 
 **includeContentTypes** (optional): if specified, this is treated as a comma-separated list of content types (e.g. text/html,text/xml). The filter will attempt to only compress responses which specify one of these values as its content type, for example via ServletResponse.setContentType(String). Note that the filter does not know the response content type at the time it is applied, and so must apply itself and later attempt to disable compression when content type has been set. This will fail if the response has already been committed. Also note that this parameter cannot be specified if excludeContentTypes is too.

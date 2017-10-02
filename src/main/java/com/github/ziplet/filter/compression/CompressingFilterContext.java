@@ -30,6 +30,7 @@ import java.util.Collections;
 import java.util.List;
 
 import java.util.regex.Pattern;
+import java.util.zip.Deflater;
 
 /**
  * Encapsulates the {@link CompressingFilter} environment, including
@@ -43,9 +44,11 @@ final class CompressingFilterContext {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CompressingFilterContext.class);
     private static final int DEFAULT_COMPRESSION_THRESHOLD = 1024;
+    private static final int DEFAULT_COMPRESSION_LEVEL = Deflater.DEFAULT_COMPRESSION;
     private static final Pattern COMMA = Pattern.compile(",");
     private final boolean debug;
 	private final int compressionThreshold;
+	private final int compressionLevel;
 	private final ServletContext servletContext;
 	private CompressingFilterStats stats;
 	private final boolean includeContentTypes;
@@ -74,6 +77,11 @@ final class CompressingFilterContext {
 		compressionThreshold = readCompressionThresholdValue(filterConfig);
 		if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Using compressing threshold: " + compressionThreshold);
+		}
+
+		compressionLevel = readCompressionLevelValue(filterConfig);
+		if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Using compression level: " + compressionLevel);
 		}
 
 		servletContext = filterConfig.getServletContext();
@@ -168,6 +176,10 @@ final class CompressingFilterContext {
 		return compressionThreshold;
 	}
 
+	int getCompressionLevel() {
+		return compressionLevel;
+	}
+
 	public CompressingFilterStats getStats() {
 		if (stats == null) {
 			throw new IllegalStateException("Stats are not enabled");
@@ -234,6 +246,28 @@ final class CompressingFilterContext {
 			}
 		} else {
 			value = DEFAULT_COMPRESSION_THRESHOLD;
+		}
+		return value;
+	}
+
+	private static int readCompressionLevelValue(FilterConfig filterConfig) throws ServletException {
+		String compressionLevelString = filterConfig.getInitParameter("compressionLevel");
+		int value;
+		if (compressionLevelString != null) {
+			try {
+				value = Integer.parseInt(compressionLevelString);
+			} catch (NumberFormatException nfe) {
+				throw new ServletException("Invalid compression level: " + compressionLevelString, nfe);
+			}
+			if (value == -1) {
+				value = DEFAULT_COMPRESSION_LEVEL;
+			} else if (value < 0) {
+				throw new ServletException("Compression level cannot be negative, unless it is -1");
+			} else if (value > Deflater.BEST_COMPRESSION) {
+				throw new ServletException("Compression level cannot be greater than " + Deflater.BEST_COMPRESSION);
+			}
+		} else {
+			value = DEFAULT_COMPRESSION_LEVEL;
 		}
 		return value;
 	}

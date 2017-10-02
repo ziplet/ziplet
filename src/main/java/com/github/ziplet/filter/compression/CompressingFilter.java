@@ -87,6 +87,11 @@ import java.util.regex.Pattern;
  * be compressed and the response will go to the client unmodified. If 0,
  * compression always begins immediately. Defaults to 1024.</li>
  *
+ * <li><strong>compressionLevel</strong> (optional): sets the compression level
+ * used for response gzip/deflate compression, from 1 (fastest compression,
+ * less CPU) to 9 (best compression, more CPU), or -1 (platform default,
+ * currently equivalent to 6). Defaults to -1.</li>
+ *
  * <li><strong>statsEnabled</strong> (optional): enables collection of
  * statistics. See {@link CompressingFilterStats}. Defaults to false.</li>
  *
