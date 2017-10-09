@@ -340,12 +340,12 @@ abstract class CompressingStreamFactory {
 
     private static class GZIPCompressingStreamFactory extends CompressingStreamFactory {
 
-    	private static class LevelGZIPOutputStream extends GZIPOutputStream {
-    		public LevelGZIPOutputStream(OutputStream out, int compressionLevel) throws IOException {
-				super(out);
-				def.setLevel(compressionLevel);
-			}
-    	}
+        private static class LevelGZIPOutputStream extends GZIPOutputStream {
+            public LevelGZIPOutputStream(OutputStream out, int compressionLevel) throws IOException {
+                super(out);
+                def.setLevel(compressionLevel);
+            }
+        }
 
         @Override
         CompressingOutputStream getCompressingStream(final OutputStream outputStream,

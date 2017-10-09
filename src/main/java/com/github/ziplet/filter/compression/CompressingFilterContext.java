@@ -81,7 +81,7 @@ final class CompressingFilterContext {
 
 		compressionLevel = readCompressionLevelValue(filterConfig);
 		if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Using compression level: " + compressionLevel);
+			LOGGER.debug("Using compression level: " + compressionLevel);
 		}
 
 		servletContext = filterConfig.getServletContext();
