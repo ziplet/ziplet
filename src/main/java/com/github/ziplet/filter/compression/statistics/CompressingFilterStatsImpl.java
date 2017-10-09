@@ -20,10 +20,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * <p>This class provides runtime statistics on the performance of
- * {@link com.github.ziplet.filter.compression.CompressingFilter}. If stats are enabled, then an instance of this
- * object will be available in the servlet context under the key
- * {@link #STATS_KEY}. It can be retrieved and used like so:</p>
+ * <p>This class provides runtime statistics on the performance of {@link
+ * com.github.ziplet.filter.compression.CompressingFilter}. If stats are enabled, then an instance
+ * of this object will be available in the servlet context under the key {@link #STATS_KEY}. It can
+ * be retrieved and used like so:</p>
  * <pre>
  * ServletContext ctx = ...;
  * // in a JSP, "ctx" is already available as the "application" variable
@@ -35,12 +35,13 @@ import java.util.concurrent.atomic.AtomicLong;
  * @author Sean Owen
  * @since 1.1
  */
-public class CompressingFilterStatsImpl implements Serializable, com.github.ziplet.filter.compression.statistics.CompressingFilterStats {
+public class CompressingFilterStatsImpl implements Serializable,
+    com.github.ziplet.filter.compression.statistics.CompressingFilterStats {
 
     private static final long serialVersionUID = -2246829834191152845L;
     /**
-     * Key under which a {@link CompressingFilterStatsImpl} object can be found in
-     * the servlet context.
+     * Key under which a {@link CompressingFilterStatsImpl} object can be found in the servlet
+     * context.
      */
     private static final String STATS_KEY = "com.github.ziplet.filter.compression.statistics.CompressingFilterStatsImpl";
     /**
@@ -77,8 +78,8 @@ public class CompressingFilterStatsImpl implements Serializable, com.github.zipl
     private AtomicLong requestCompressedBytes = new AtomicLong();
 
     /**
-     * @return the number of responses which {@link com.github.ziplet.filter.compression.CompressingFilter} has
-     * compressed.
+     * @return the number of responses which {@link com.github.ziplet.filter.compression.CompressingFilter}
+     * has compressed.
      */
     public int getNumResponsesCompressed() {
         return numResponsesCompressed.get();
@@ -90,9 +91,9 @@ public class CompressingFilterStatsImpl implements Serializable, com.github.zipl
     }
 
     /**
-     * @return the number of responses which {@link com.github.ziplet.filter.compression.CompressingFilter} has
-     * processed but <em>not</em> compressed for some reason (compression not
-     * supported by the browser, for example).
+     * @return the number of responses which {@link com.github.ziplet.filter.compression.CompressingFilter}
+     * has processed but <em>not</em> compressed for some reason (compression not supported by the
+     * browser, for example).
      */
     public int getTotalResponsesNotCompressed() {
         return totalResponsesNotCompressed.get();
@@ -104,9 +105,9 @@ public class CompressingFilterStatsImpl implements Serializable, com.github.zipl
     }
 
     /**
+     * @return total number of bytes written to the {@link com.github.ziplet.filter.compression.CompressingFilter}
+     * in responses.
      * @deprecated use {@link #getResponseInputBytes()}
-     * @return total number of bytes written to the {@link com.github.ziplet.filter.compression.CompressingFilter} in
-     * responses.
      */
     @Deprecated
     public long getInputBytes() {
@@ -114,17 +115,17 @@ public class CompressingFilterStatsImpl implements Serializable, com.github.zipl
     }
 
     /**
-     * @return total number of bytes written to the {@link com.github.ziplet.filter.compression.CompressingFilter} in
-     * responses.
+     * @return total number of bytes written to the {@link com.github.ziplet.filter.compression.CompressingFilter}
+     * in responses.
      */
     public long getResponseInputBytes() {
         return responseInputBytes.get();
     }
 
     /**
+     * @return total number of compressed bytes written by the {@link com.github.ziplet.filter.compression.CompressingFilter}
+     * to the client in responses.
      * @deprecated use {@link #getResponseCompressedBytes()}
-     * @return total number of compressed bytes written by the
-     * {@link com.github.ziplet.filter.compression.CompressingFilter} to the client in responses.
      */
     @Deprecated
     public long getCompressedBytes() {
@@ -132,8 +133,8 @@ public class CompressingFilterStatsImpl implements Serializable, com.github.zipl
     }
 
     /**
-     * @return total number of compressed bytes written by the
-     * {@link com.github.ziplet.filter.compression.CompressingFilter} to the client in responses.
+     * @return total number of compressed bytes written by the {@link com.github.ziplet.filter.compression.CompressingFilter}
+     * to the client in responses.
      */
     public long getResponseCompressedBytes() {
         return responseCompressedBytes.get();
@@ -148,18 +149,18 @@ public class CompressingFilterStatsImpl implements Serializable, com.github.zipl
     }
 
     /**
-     * @return average compression ratio (input bytes / compressed bytes) in
-     * responses, or 0 if nothing has yet been compressed. Note that this is
-     * (typically) greater than 1, not less than 1.
+     * @return average compression ratio (input bytes / compressed bytes) in responses, or 0 if
+     * nothing has yet been compressed. Note that this is (typically) greater than 1, not less than
+     * 1.
      */
     public double getResponseAverageCompressionRatio() {
         return getResponseCompressedBytes() == 0L ? 0.0 :
-                (double) getResponseInputBytes() / (double) getResponseCompressedBytes();
+            (double) getResponseInputBytes() / (double) getResponseCompressedBytes();
     }
 
     /**
-     * @return the number of requests which {@link com.github.ziplet.filter.compression.CompressingFilter} has
-     * compressed.
+     * @return the number of requests which {@link com.github.ziplet.filter.compression.CompressingFilter}
+     * has compressed.
      * @since 1.6
      */
     public int getNumRequestsCompressed() {
@@ -172,9 +173,9 @@ public class CompressingFilterStatsImpl implements Serializable, com.github.zipl
     }
 
     /**
-     * @return the number of requests which {@link com.github.ziplet.filter.compression.CompressingFilter} has
-     * processed but <em>not</em> compressed for some reason (no compression
-     * requested, for example).
+     * @return the number of requests which {@link com.github.ziplet.filter.compression.CompressingFilter}
+     * has processed but <em>not</em> compressed for some reason (no compression requested, for
+     * example).
      * @since 1.6
      */
     public int getTotalRequestsNotCompressed() {
@@ -187,8 +188,8 @@ public class CompressingFilterStatsImpl implements Serializable, com.github.zipl
     }
 
     /**
-     * @return total number of bytes written to the {@link com.github.ziplet.filter.compression.CompressingFilter} in
-     * requests.
+     * @return total number of bytes written to the {@link com.github.ziplet.filter.compression.CompressingFilter}
+     * in requests.
      * @since 1.6
      */
     public long getRequestInputBytes() {
@@ -196,8 +197,8 @@ public class CompressingFilterStatsImpl implements Serializable, com.github.zipl
     }
 
     /**
-     * @return total number of compressed bytes written by the
-     * {@link com.github.ziplet.filter.compression.CompressingFilter} to the client in requests.
+     * @return total number of compressed bytes written by the {@link com.github.ziplet.filter.compression.CompressingFilter}
+     * to the client in requests.
      * @since 1.6
      */
     public long getRequestCompressedBytes() {
@@ -205,14 +206,14 @@ public class CompressingFilterStatsImpl implements Serializable, com.github.zipl
     }
 
     /**
-     * @return average compression ratio (input bytes / compressed bytes) in
-     * requests, or 0 if nothing has yet been compressed. Note that this is
-     * (typically) greater than 1, not less than 1.
+     * @return average compression ratio (input bytes / compressed bytes) in requests, or 0 if
+     * nothing has yet been compressed. Note that this is (typically) greater than 1, not less than
+     * 1.
      * @since 1.6
      */
     public double getRequestAverageCompressionRatio() {
         return requestCompressedBytes.get() == 0L ? 0.0 :
-                (double) requestInputBytes.get() / (double) requestCompressedBytes.get();
+            (double) requestInputBytes.get() / (double) requestCompressedBytes.get();
     }
 
     /**
@@ -221,9 +222,9 @@ public class CompressingFilterStatsImpl implements Serializable, com.github.zipl
     @Override
     public String toString() {
         return "CompressingFilterStatsImpl[responses compressed: " + numResponsesCompressed
-                + ", avg. response compression ratio: " + getResponseAverageCompressionRatio()
-                + ", requests compressed: " + numRequestsCompressed
-                + ", avg. request compression ratio: " + getRequestAverageCompressionRatio() + ']';
+            + ", avg. response compression ratio: " + getResponseAverageCompressionRatio()
+            + ", requests compressed: " + numRequestsCompressed
+            + ", avg. request compression ratio: " + getRequestAverageCompressionRatio() + ']';
     }
 
     @Override

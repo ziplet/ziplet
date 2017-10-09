@@ -16,24 +16,22 @@
 package com.github.ziplet.filter.compression;
 
 import com.github.ziplet.filter.compression.statistics.CompressingFilterStats;
-
 import java.io.IOException;
 import java.io.OutputStream;
 
 /**
- * An {@link OutputStream} that decorates another {@link OutputStream} and notes
- * when bytes are written to the stream. Callers create an instance of
- * {@link StatsOutputStream} with an instance of {@link OutputStream}, which
- * receives notification of writes. This information might be used to tally the
- * number of bytes written to a stream.
+ * An {@link OutputStream} that decorates another {@link OutputStream} and notes when bytes are
+ * written to the stream. Callers create an instance of {@link StatsOutputStream} with an instance
+ * of {@link OutputStream}, which receives notification of writes. This information might be used to
+ * tally the number of bytes written to a stream.
  *
  * @author Sean Owen
  */
 public class StatsOutputStream extends OutputStream {
 
-    protected final OutputStream outputStream;
+    private final OutputStream outputStream;
     protected final CompressingFilterStats stats;
-    protected final StatsField field;
+    private final StatsField field;
 
     StatsOutputStream(OutputStream outputStream, CompressingFilterStats stats, StatsField field) {
         assert outputStream != null && stats != null;

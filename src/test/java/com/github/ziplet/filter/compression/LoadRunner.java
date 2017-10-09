@@ -19,13 +19,12 @@ import com.mockrunner.mock.web.MockHttpServletRequest;
 import com.mockrunner.mock.web.MockServletContext;
 import com.mockrunner.mock.web.WebMockObjectFactory;
 import com.mockrunner.servlet.ServletTestModule;
-
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Random;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * Can be used to generate load on {@link CompressingFilter}.
@@ -59,7 +58,7 @@ public final class LoadRunner {
         module.setServlet(new HttpServlet() {
             @Override
             public void doGet(HttpServletRequest request,
-                    HttpServletResponse response) throws IOException {
+                HttpServletResponse response) throws IOException {
                 PrintWriter writer = response.getWriter();
                 for (String string : data) {
                     writer.print(string);
@@ -76,7 +75,9 @@ public final class LoadRunner {
         }
         long end = System.currentTimeMillis();
         long time = end - start;
-        System.out.println("Completed in " + time + "ms (" + (double) time / iterations + " per request)");
+        System.out
+            .println(
+                "Completed in " + time + "ms (" + (double) time / iterations + " per request)");
 
     }
 }

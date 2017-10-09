@@ -19,8 +19,7 @@ import java.util.Enumeration;
 import java.util.Iterator;
 
 /**
- * <p>An {@link java.util.Enumeration} which enumerates the contents of an
- * {@link Iterator}.</p>
+ * <p>An {@link java.util.Enumeration} which enumerates the contents of an {@link Iterator}.</p>
  *
  * @author Sean Owen
  * @since 1.6

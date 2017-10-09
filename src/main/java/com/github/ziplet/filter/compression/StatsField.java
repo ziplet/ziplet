@@ -7,9 +7,8 @@ package com.github.ziplet.filter.compression;
 import java.io.Serializable;
 
 /**
- * <p>A simple enum used by {@link OutputStatsCallback} to select a field in
- * this class. This is getting a little messy but somehow better than
- * defining a bunch of inner classes?</p>
+ * <p>A simple enum used by {@link OutputStatsCallback} to select a field in this class. This is
+ * getting a little messy but somehow better than defining a bunch of inner classes?</p>
  *
  * @since 1.6
  */

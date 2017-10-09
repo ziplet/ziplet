@@ -15,20 +15,20 @@
  */
 package com.github.ziplet.filter.compression;
 
-import javax.servlet.ServletInputStream;
-import javax.servlet.ServletRequest;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletRequestWrapper;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Enumeration;
+import javax.servlet.ServletInputStream;
+import javax.servlet.ServletRequest;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletRequestWrapper;
 
 /**
- * <p>Implementation of {@link HttpServletRequest} which can decompress request
- * bodies that have been compressed.</p>
+ * <p>Implementation of {@link HttpServletRequest} which can decompress request bodies that have
+ * been compressed.</p>
  *
  * @author Sean Owen
  * @since 1.6
@@ -44,12 +44,21 @@ final class CompressedHttpServletRequest extends HttpServletRequestWrapper {
     private boolean isGetReaderCalled;
 
     CompressedHttpServletRequest(HttpServletRequest httpRequest,
-            CompressingStreamFactory compressingStreamFactory,
-            CompressingFilterContext context) {
+        CompressingStreamFactory compressingStreamFactory,
+        CompressingFilterContext context) {
         super(httpRequest);
         this.httpRequest = httpRequest;
         this.compressingStreamFactory = compressingStreamFactory;
         this.context = context;
+    }
+
+    // Header-related methods -- need to make sure we consume and hide the
+    // Content-Encoding header. What a lot of work to get that done:
+    private static boolean isFilteredHeader(String headerName) {
+        // Filter Content-Encoding since we're handing decompression ourselves;
+        // filter Accept-Encoding so that downstream services don't try to compress too
+        return CompressingHttpServletResponse.CONTENT_ENCODING_HEADER.equalsIgnoreCase(headerName)
+            || CompressingHttpServletResponse.ACCEPT_ENCODING_HEADER.equalsIgnoreCase(headerName);
     }
 
     @Override
@@ -68,7 +77,8 @@ final class CompressedHttpServletRequest extends HttpServletRequestWrapper {
         }
         isGetReaderCalled = true;
         if (bufferedReader == null) {
-            bufferedReader = new BufferedReader(new InputStreamReader(getCompressingServletInputStream(),
+            bufferedReader = new BufferedReader(
+                new InputStreamReader(getCompressingServletInputStream(),
                     getCharacterEncoding()));
         }
         return bufferedReader;
@@ -77,19 +87,10 @@ final class CompressedHttpServletRequest extends HttpServletRequestWrapper {
     private CompressingServletInputStream getCompressingServletInputStream() throws IOException {
         if (compressedSIS == null) {
             compressedSIS = new CompressingServletInputStream(httpRequest.getInputStream(),
-                    compressingStreamFactory,
-                    context);
+                compressingStreamFactory,
+                context);
         }
         return compressedSIS;
-    }
-
-    // Header-related methods -- need to make sure we consume and hide the
-    // Content-Encoding header. What a lot of work to get that done:
-    private static boolean isFilteredHeader(String headerName) {
-        // Filter Content-Encoding since we're handing decompression ourselves;
-        // filter Accept-Encoding so that downstream services don't try to compress too
-        return CompressingHttpServletResponse.CONTENT_ENCODING_HEADER.equalsIgnoreCase(headerName)
-                || CompressingHttpServletResponse.ACCEPT_ENCODING_HEADER.equalsIgnoreCase(headerName);
     }
 
     @Override
