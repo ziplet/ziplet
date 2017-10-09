@@ -24,7 +24,7 @@ Add the ziplet-XX.jar file containing CompressingFilter to your web application'
     <dependency>
         <groupId>com.github.ziplet</groupId>
         <artifactId>ziplet</artifactId>
-        <version>2.2.0</version>
+        <version>2.3.0</version>
     </dependency>
 ```
 
