@@ -54,6 +54,7 @@
 			<groupId>com.google.googlejavaformat</groupId>
 			<artifactId>google-java-format</artifactId>
 			<version>1.4</version>
+			<scope>provided</scope>
 		</dependency>
 
 		<dependency>
