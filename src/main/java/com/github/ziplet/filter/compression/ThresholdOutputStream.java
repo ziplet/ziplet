@@ -15,12 +15,11 @@
  */
 package com.github.ziplet.filter.compression;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Sean Owen
@@ -28,24 +27,24 @@ import java.io.OutputStream;
 final class ThresholdOutputStream extends OutputStream {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ThresholdOutputStream.class);
-    private boolean buffering;
     private final OutputStream out1;
-    private OutputStream out2;
-    private CompressingOutputStream compressingOutputStream;
     private final CompressingStreamFactory compressingStreamFactory;
     private final CompressingFilterContext context;
     private final int threshold;
     private final BufferCommitmentCallback bufferCommitmentCallback;
+    private boolean buffering;
+    private OutputStream out2;
+    private CompressingOutputStream compressingOutputStream;
     private ByteArrayOutputStream buffer;
     private boolean closed;
     private boolean forceOut1;
 
     ThresholdOutputStream(OutputStream out1,
-            CompressingStreamFactory compressingStreamFactory,
-            CompressingFilterContext context,
-            BufferCommitmentCallback thresholdReachedCallback) {
+        CompressingStreamFactory compressingStreamFactory,
+        CompressingFilterContext context,
+        BufferCommitmentCallback thresholdReachedCallback) {
         assert out1 != null && compressingStreamFactory != null
-                && context != null && thresholdReachedCallback != null;
+            && context != null && thresholdReachedCallback != null;
         buffering = true;
         this.out1 = out1;
         this.compressingStreamFactory = compressingStreamFactory;
@@ -151,18 +150,6 @@ final class ThresholdOutputStream extends OutputStream {
         return "ThresholdOutputStream";
     }
 
-    /**
-     * Implementations of this interface are used to receive notification that
-     * this stream has either committed bytes to the "raw" stream (without
-     * compression), or has committed bytes to a compressing stream.
-     */
-    interface BufferCommitmentCallback {
-
-        void rawStreamCommitted();
-
-        void compressingStreamCommitted();
-    }
-
     private boolean continueBuffering(int numAdditionalBytes) throws IOException {
         boolean shouldContinue = false;
         if (buffering) {
@@ -218,5 +205,17 @@ final class ThresholdOutputStream extends OutputStream {
         if (closed) {
             throw new IllegalStateException("Stream is closed");
         }
+    }
+
+    /**
+     * Implementations of this interface are used to receive notification that this stream has
+     * either committed bytes to the "raw" stream (without compression), or has committed bytes to a
+     * compressing stream.
+     */
+    interface BufferCommitmentCallback {
+
+        void rawStreamCommitted();
+
+        void compressingStreamCommitted();
     }
 }

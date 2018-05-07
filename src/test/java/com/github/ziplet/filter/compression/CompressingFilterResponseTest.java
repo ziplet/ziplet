@@ -15,23 +15,26 @@
  */
 package com.github.ziplet.filter.compression;
 
+import com.github.ziplet.filter.compression.statistics.CompressingFilterStatsImpl;
 import com.mockrunner.mock.web.MockFilterConfig;
 import com.mockrunner.mock.web.MockHttpServletRequest;
 import com.mockrunner.mock.web.MockHttpServletResponse;
 import com.mockrunner.mock.web.WebMockObjectFactory;
 import com.mockrunner.servlet.ServletTestModule;
-import com.github.ziplet.filter.compression.statistics.CompressingFilterStatsImpl;
-import junit.framework.TestCase;
-
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.Random;
+import java.util.zip.Deflater;
 import java.util.zip.DeflaterOutputStream;
+import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
+import java.util.zip.InflaterInputStream;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import junit.framework.TestCase;
 
 /**
  * Tests {@link CompressingFilter} compressing responses.
@@ -40,9 +43,10 @@ import java.util.zip.GZIPOutputStream;
  */
 public final class CompressingFilterResponseTest extends TestCase {
 
-    private static final String TEST_ENCODING = "ISO-8859-1";
     static final String SMALL_DOCUMENT = "Test";
     static final String BIG_DOCUMENT;
+    static final String BIG_TEXT_DOCUMENT;
+    private static final String TEST_ENCODING = "ISO-8859-1";
     private static final String EMPTY = "";
 
     static {
@@ -58,8 +62,53 @@ public final class CompressingFilterResponseTest extends TestCase {
         }
         BIG_DOCUMENT = temp;
     }
+
+    static {
+        // Make up a random, but repeatable long ASCII-7 String that is non-trivially compressible
+        Random r = new Random(0xDEADBEEFL);
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < 1000; i++) {
+            int c = r.nextInt(Character.MIN_HIGH_SURROGATE);
+            sb.append(String.valueOf(c)).append(":").append(Character.getName(c)).append("\n");
+        }
+        BIG_TEXT_DOCUMENT = sb.toString();
+    }
+
     private WebMockObjectFactory factory;
     private ServletTestModule module;
+
+    private static byte[] uncompressGzip(byte[] input) throws IOException {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ByteArrayInputStream bais = new ByteArrayInputStream(input);
+        byte[] buffer = new byte[1024];
+        GZIPInputStream gzipIn = new GZIPInputStream(bais);
+        int len;
+        while ((len = gzipIn.read(buffer)) > 0) {
+            baos.write(buffer, 0, len);
+        }
+        return baos.toByteArray();
+    }
+
+    private static byte[] uncompressDeflate(byte[] input) throws IOException {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ByteArrayInputStream bais = new ByteArrayInputStream(input);
+        byte[] buffer = new byte[1024];
+        InflaterInputStream deflateIn = new InflaterInputStream(bais);
+        int len;
+        while ((len = deflateIn.read(buffer)) > 0) {
+            baos.write(buffer, 0, len);
+        }
+        return baos.toByteArray();
+    }
+
+    private static byte[] getCompressedOutput(byte[] output) throws IOException {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        DeflaterOutputStream gzipOut = new GZIPOutputStream(baos);
+        gzipOut.write(output);
+        gzipOut.finish();
+        gzipOut.close();
+        return baos.toByteArray();
+    }
 
     @Override
     public void setUp() throws Exception {
@@ -92,7 +141,10 @@ public final class CompressingFilterResponseTest extends TestCase {
     public void testBigOutput() throws Exception {
         verifyOutput(BIG_DOCUMENT, true);
 
-        CompressingFilterStatsImpl stats = (CompressingFilterStatsImpl) factory.getMockServletContext().getAttribute("com.github.ziplet.filter.compression.statistics.CompressingFilterStatsImpl");
+        CompressingFilterStatsImpl stats = (CompressingFilterStatsImpl) factory
+            .getMockServletContext()
+            .getAttribute(
+                "com.github.ziplet.filter.compression.statistics.CompressingFilterStatsImpl");
         assertNotNull(stats);
 
         assertEquals(0, stats.getNumRequestsCompressed());
@@ -124,7 +176,7 @@ public final class CompressingFilterResponseTest extends TestCase {
         module.setServlet(new HttpServlet() {
             @Override
             public void doGet(HttpServletRequest request,
-                    HttpServletResponse response) throws IOException {
+                HttpServletResponse response) throws IOException {
                 response.setHeader("Cache-Control", "no-transform");
                 response.getWriter().print(BIG_DOCUMENT);
             }
@@ -160,7 +212,7 @@ public final class CompressingFilterResponseTest extends TestCase {
         module.setServlet(new HttpServlet() {
             @Override
             public void doGet(HttpServletRequest request,
-                    HttpServletResponse response) throws IOException {
+                HttpServletResponse response) throws IOException {
                 response.setContentType("text/badtype; otherstuff");
                 response.getWriter().print(BIG_DOCUMENT);
             }
@@ -172,14 +224,14 @@ public final class CompressingFilterResponseTest extends TestCase {
         module.setServlet(new HttpServlet() {
             @Override
             public void doGet(HttpServletRequest request,
-                    HttpServletResponse response) throws IOException {
+                HttpServletResponse response) throws IOException {
                 response.setContentType("text/goodtype; otherstuff");
                 response.getWriter().print(BIG_DOCUMENT);
             }
         });
         verifyOutput(BIG_DOCUMENT, true);
     }
-    
+
     public void testDontSendVaryHeader() throws IOException {
         MockHttpServletRequest request = factory.getMockRequest();
         request.setHeader("User-Agent", "bla MSIE 8.0 blub");
@@ -190,7 +242,7 @@ public final class CompressingFilterResponseTest extends TestCase {
         module.setServlet(new HttpServlet() {
             @Override
             public void doGet(HttpServletRequest request,
-                    HttpServletResponse response) throws IOException {
+                HttpServletResponse response) throws IOException {
                 response.sendRedirect("http://www.google.com/");
             }
         });
@@ -210,7 +262,7 @@ public final class CompressingFilterResponseTest extends TestCase {
         module.setServlet(new HttpServlet() {
             @Override
             public void doGet(HttpServletRequest request,
-                    HttpServletResponse response) throws IOException {
+                HttpServletResponse response) throws IOException {
                 response.getWriter().print(SMALL_DOCUMENT);
                 response.flushBuffer();
                 response.getWriter().print(SMALL_DOCUMENT);
@@ -231,7 +283,7 @@ public final class CompressingFilterResponseTest extends TestCase {
         module.setServlet(new HttpServlet() {
             @Override
             public void doGet(HttpServletRequest request,
-                    HttpServletResponse response) throws IOException {
+                HttpServletResponse response) throws IOException {
                 response.getWriter().print(SMALL_DOCUMENT);
                 response.getWriter().close();
             }
@@ -253,7 +305,7 @@ public final class CompressingFilterResponseTest extends TestCase {
         module.setServlet(new HttpServlet() {
             @Override
             public void doGet(HttpServletRequest request,
-                    HttpServletResponse response) throws IOException {
+                HttpServletResponse response) throws IOException {
                 response.getWriter().print(SMALL_DOCUMENT);
                 response.getWriter().close();
                 response.getWriter().flush();
@@ -283,11 +335,101 @@ public final class CompressingFilterResponseTest extends TestCase {
         doTestNoOutput();
     }
 
+    public void testCompressionLevel() throws IOException {
+        int[] compressionLevels = new int[]{
+            Deflater.BEST_SPEED, // 1
+            Deflater.DEFAULT_COMPRESSION, // -1 -> 6
+            Deflater.BEST_COMPRESSION, // 9
+        };
+
+        String[] acceptEncodings = new String[]{
+            "deflate",
+            "gzip",
+        };
+
+        for (String acceptEncoding : acceptEncodings) {
+            long[] responseLengths = new long[compressionLevels.length];
+
+            for (int i = 0; i < compressionLevels.length; i++) {
+                // override module to set different config
+                factory = new WebMockObjectFactory();
+                MockFilterConfig config = factory.getMockFilterConfig();
+                config.setInitParameter("debug", "true");
+                config.setInitParameter("statsEnabled", "true");
+                config.setInitParameter("compressionThreshold", String.valueOf(0));
+                config.setInitParameter("compressionLevel", String.valueOf(compressionLevels[i]));
+                module = new ServletTestModule(factory);
+                module.addFilter(new CompressingFilter(), true);
+                module.setDoChain(true);
+                factory.getMockResponse().setCharacterEncoding(TEST_ENCODING);
+
+                MockHttpServletRequest request = factory.getMockRequest();
+                request.addHeader("Accept-Encoding", acceptEncoding);
+                module.setServlet(new HttpServlet() {
+                    @Override
+                    public void doGet(HttpServletRequest request, HttpServletResponse response)
+                        throws IOException {
+                        response.getWriter().print(BIG_TEXT_DOCUMENT);
+                    }
+                });
+
+                module.doGet();
+                MockHttpServletResponse response = factory.getMockResponse();
+
+                // response should be OK
+                assertEquals(HttpServletResponse.SC_OK, response.getStatusCode());
+                assertFalse(response.wasRedirectSent());
+                assertFalse(response.wasErrorSent());
+
+                // response should be compressed
+                assertTrue(response.containsHeader("Content-Encoding"));
+                assertEquals(acceptEncoding, response.getHeader("Content-Encoding"));
+                assertEquals(Boolean.TRUE,
+                    module.getRequestAttribute(CompressingFilter.COMPRESSED_KEY));
+                String moduleOutput = module.getOutput();
+                assertFalse("Response body not compressed", BIG_TEXT_DOCUMENT.equals(moduleOutput));
+
+                // uncompressed response body should match expected
+                final byte[] uncompressedBytes;
+                if ("gzip".equals(acceptEncoding)) {
+                    uncompressedBytes = uncompressGzip(moduleOutput.getBytes(TEST_ENCODING));
+                } else if ("deflate".equals(acceptEncoding)) {
+                    uncompressedBytes = uncompressDeflate(moduleOutput.getBytes(TEST_ENCODING));
+                } else {
+                    throw new IllegalStateException("Unhandled encoding: " + acceptEncoding);
+                }
+                assertEquals("Response body uncompression mismatch", BIG_TEXT_DOCUMENT,
+                    new String(uncompressedBytes, TEST_ENCODING));
+
+                // compression ratio should be sane
+                CompressingFilterStatsImpl stats = (CompressingFilterStatsImpl) factory
+                    .getMockServletContext().getAttribute(
+                        "com.github.ziplet.filter.compression.statistics.CompressingFilterStatsImpl");
+                assertNotNull(stats);
+
+                assertEquals(1, stats.getNumResponsesCompressed());
+                assertEquals(0, stats.getTotalResponsesNotCompressed());
+                assertTrue("response length did not shrink by compression",
+                    BIG_TEXT_DOCUMENT.length() > stats.getResponseCompressedBytes());
+
+                // compression ratio should monotonically increase with increasing compressionLevels
+                responseLengths[i] = stats.getResponseCompressedBytes();
+                // compare to previous, if any
+                if (i > 0) {
+                    assertTrue(
+                        "Compression ratio did not improve from " + acceptEncoding + " level "
+                            + compressionLevels[i - 1] + " to " + compressionLevels[i],
+                        responseLengths[i - 1] > responseLengths[i]);
+                }
+            }
+        }
+    }
+
     private void doTestNoOutput() {
         module.setServlet(new HttpServlet() {
             @Override
             public void doGet(HttpServletRequest request,
-                    HttpServletResponse response) throws IOException {
+                HttpServletResponse response) throws IOException {
                 response.getWriter().close();
             }
         });
@@ -311,14 +453,15 @@ public final class CompressingFilterResponseTest extends TestCase {
         verifyOutput(output, shouldCompress, false);
     }
     
-    private void verifyOutput(final String output, boolean shouldCompress, boolean noVaryHeader) throws IOException {
-	final String originalEtag = "\"" + String.valueOf(output.hashCode()) + "\""; // Fake ETag
-	final String compressedEtag = "\"" + String.valueOf(output.hashCode()) + "-gzip\"";
+    private void verifyOutput(final String output, boolean shouldCompress, boolean noVaryHeader)
+        throws IOException {
+        final String originalEtag = "\"" + String.valueOf(output.hashCode()) + "\""; // Fake ETag
+        final String compressedEtag = "\"" + String.valueOf(output.hashCode()) + "-gzip\"";
         if (module.getServlet() == null) {
             module.setServlet(new HttpServlet() {
                 @Override
                 public void doGet(HttpServletRequest request,
-                        HttpServletResponse response) throws IOException {
+                    HttpServletResponse response) throws IOException {
                     response.setHeader("ETag", originalEtag);
                     response.getWriter().print(output);
                 }
@@ -335,7 +478,7 @@ public final class CompressingFilterResponseTest extends TestCase {
         assertFalse(response.wasRedirectSent());
         assertFalse(response.wasErrorSent());
 
-        if (shouldCompress) { 
+        if (shouldCompress) {
             assertEquals("Check vary header", !noVaryHeader, response.containsHeader("Vary"));
             byte[] expectedBytes = getCompressedOutput(output.getBytes(TEST_ENCODING));
             // Since ServletTestModule makes a String out of the output according to ISO-8859-1 encoding,
@@ -345,11 +488,13 @@ public final class CompressingFilterResponseTest extends TestCase {
             assertFalse(output.equals(moduleOutput));
             String expectedString = new String(expectedBytes, TEST_ENCODING);
             assertEquals(expectedString, moduleOutput);
-            assertEquals(Boolean.TRUE, module.getRequestAttribute(CompressingFilter.COMPRESSED_KEY));
+            assertEquals(Boolean.TRUE,
+                module.getRequestAttribute(CompressingFilter.COMPRESSED_KEY));
 
             assertTrue(response.containsHeader("Content-Encoding"));
             assertTrue(response.containsHeader("X-Compressed-By"));
-            assertTrue(!response.containsHeader("ETag") || response.getHeader("ETag").equals(compressedEtag));
+            assertTrue(
+                !response.containsHeader("ETag") || response.getHeader("ETag").equals(compressedEtag));
         } else {
             assertEquals(output, module.getOutput());
             assertNull(module.getRequestAttribute(CompressingFilter.COMPRESSED_KEY));
@@ -357,14 +502,5 @@ public final class CompressingFilterResponseTest extends TestCase {
         }
 
 
-    }
-
-    private static byte[] getCompressedOutput(byte[] output) throws IOException {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        DeflaterOutputStream gzipOut = new GZIPOutputStream(baos);
-        gzipOut.write(output);
-        gzipOut.finish();
-        gzipOut.close();
-        return baos.toByteArray();
     }
 }

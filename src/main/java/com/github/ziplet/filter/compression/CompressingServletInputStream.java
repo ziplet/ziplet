@@ -15,13 +15,12 @@
  */
 package com.github.ziplet.filter.compression;
 
-import javax.servlet.ServletInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import javax.servlet.ServletInputStream;
 
 /**
- * <p>Implementation of {@link ServletInputStream} which will decompress data
- * read from it.</p>
+ * <p>Implementation of {@link ServletInputStream} which will decompress data read from it.</p>
  *
  * @author Sean Owen
  * @since 1.6
@@ -32,10 +31,11 @@ final class CompressingServletInputStream extends ServletInputStream {
     private boolean closed;
 
     CompressingServletInputStream(InputStream rawStream,
-            CompressingStreamFactory compressingStreamFactory,
-            CompressingFilterContext context) throws IOException {
+        CompressingStreamFactory compressingStreamFactory,
+        CompressingFilterContext context) throws IOException {
         this.compressingStream =
-                compressingStreamFactory.getCompressingStream(rawStream, context).getCompressingInputStream();
+            compressingStreamFactory.getCompressingStream(rawStream, context)
+                .getCompressingInputStream();
     }
 
     @Override

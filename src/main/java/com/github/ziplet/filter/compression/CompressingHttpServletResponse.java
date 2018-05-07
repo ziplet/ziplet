@@ -25,22 +25,24 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Implementation of {@link HttpServletResponse} which will optionally compress
- * data written to the response.
+ * Implementation of {@link HttpServletResponse} which will optionally compress data written to the
+ * response.
  *
  * @author Sean Owen
  */
 final class CompressingHttpServletResponse extends HttpServletResponseWrapper {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(CompressingHttpServletResponse.class);
     static final String ACCEPT_ENCODING_HEADER = "Accept-Encoding";
-    private static final String CACHE_CONTROL_HEADER = "Cache-Control";
     static final String CONTENT_ENCODING_HEADER = "Content-Encoding";
+    private static final Logger LOGGER = LoggerFactory
+        .getLogger(CompressingHttpServletResponse.class);
+    private static final String CACHE_CONTROL_HEADER = "Cache-Control";
     private static final String CONTENT_LENGTH_HEADER = "Content-Length";
     private static final String CONTENT_TYPE_HEADER = "Content-Type";
     private static final String ETAG_HEADER = "ETag";
     private static final String X_COMPRESSED_BY_HEADER = "X-Compressed-By";
-    private static final String[] UNALLOWED_HEADERS = {CACHE_CONTROL_HEADER, CONTENT_LENGTH_HEADER, CONTENT_ENCODING_HEADER, ETAG_HEADER, X_COMPRESSED_BY_HEADER};
+    private static final String[] UNALLOWED_HEADERS = {CACHE_CONTROL_HEADER, CONTENT_LENGTH_HEADER,
+        CONTENT_ENCODING_HEADER, ETAG_HEADER, X_COMPRESSED_BY_HEADER};
     private static final String COMPRESSED_BY_VALUE = CompressingFilter.VERSION_STRING;
     private final HttpServletResponse httpResponse;
     private final CompressingFilterContext context;
@@ -59,9 +61,9 @@ final class CompressingHttpServletResponse extends HttpServletResponseWrapper {
     private boolean noTransformSet;
 
     CompressingHttpServletResponse(HttpServletResponse httpResponse,
-            CompressingStreamFactory compressingStreamFactory,
-            String contentEncoding,
-            CompressingFilterContext context) {
+        CompressingStreamFactory compressingStreamFactory,
+        String contentEncoding,
+        CompressingFilterContext context) {
         super(httpResponse);
         this.httpResponse = httpResponse;
         this.compressedContentEncoding = contentEncoding;
@@ -69,6 +71,27 @@ final class CompressingHttpServletResponse extends HttpServletResponseWrapper {
         this.compressingStreamFactory = compressingStreamFactory;
         this.context = context;
         contentTypeOK = true;
+    }
+
+    private static boolean equalsIgnoreCaseAny(String a, String... others) {
+        for (String other : others) {
+            if (a.equalsIgnoreCase(other)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean isCompressableEncoding(String encoding) {
+        if (encoding == null) {
+            return true;
+        }
+        for (String compressionEncoding : CompressingStreamFactory.ALL_COMPRESSION_ENCODINGS) {
+            if (encoding.equals(compressionEncoding)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     @Override
@@ -87,9 +110,10 @@ final class CompressingHttpServletResponse extends HttpServletResponseWrapper {
         }
         isGetWriterCalled = true;
         if (printWriter == null) {
-            printWriter = new PrintWriter(new OutputStreamWriter(getCompressingServletOutputStream(),
+            printWriter = new PrintWriter(
+                new OutputStreamWriter(getCompressingServletOutputStream(),
                     getCharacterEncoding()),
-                    true);
+                true);
         }
         return printWriter;
     }
@@ -267,15 +291,16 @@ final class CompressingHttpServletResponse extends HttpServletResponseWrapper {
 
     @Override
     public void setContentLength(int contentLength) {
-		// since servlet spec 3.1 we can use setContentLengthLong to accommodate long pages
+        // since servlet spec 3.1 we can use setContentLengthLong to accommodate long pages
         setContentLengthLong((long) contentLength);
     }
 
-	// Servlet spec 3.1
+    // Servlet spec 3.1
     public void setContentLengthLong(long contentLength) {
         if (compressing) {
             // do nothing -- caller-supplied content length is not meaningful
-            LOGGER.debug("Ignoring application-specified content length since response is compressed");
+            LOGGER.debug(
+                "Ignoring application-specified content length since response is compressed");
         } else {
             savedContentLength = contentLength;
             savedContentLengthSet = true;
@@ -314,8 +339,8 @@ final class CompressingHttpServletResponse extends HttpServletResponseWrapper {
     private void setCompressionResponseHeaders() {
         LOGGER.debug("Setting compression-related headers");
         String fullContentEncodingHeader = savedContentEncoding == null
-                ? compressedContentEncoding
-                : savedContentEncoding + ',' + compressedContentEncoding;
+            ? compressedContentEncoding
+            : savedContentEncoding + ',' + compressedContentEncoding;
         httpResponse.setHeader(CONTENT_ENCODING_HEADER, fullContentEncodingHeader);
         setETagHeader();
         if (context.isDebug()) {
@@ -346,12 +371,11 @@ final class CompressingHttpServletResponse extends HttpServletResponseWrapper {
     }
 
     /**
-     * <p>Returns true if and only if the named HTTP header may be set directly
-     * by the application, as some headers must be handled specially. null is
-     * allowed, though it setting a header named null will probably generate an
-     * exception from the underlying {@link HttpServletResponse}. {@link #CONTENT_LENGTH_HEADER},
-     * {@link #CONTENT_ENCODING_HEADER} and {@link #X_COMPRESSED_BY_HEADER} are
-     * not allowed.</p>
+     * <p>Returns true if and only if the named HTTP header may be set directly by the application,
+     * as some headers must be handled specially. null is allowed, though it setting a header named
+     * null will probably generate an exception from the underlying {@link HttpServletResponse}.
+     * {@link #CONTENT_LENGTH_HEADER}, {@link #CONTENT_ENCODING_HEADER} and {@link
+     * #X_COMPRESSED_BY_HEADER} are not allowed.</p>
      *
      * @param header name of HTTP header
      * @return true if and only if header can be set directly by application
@@ -364,15 +388,6 @@ final class CompressingHttpServletResponse extends HttpServletResponseWrapper {
         return !unallowed;
     }
 
-    private static boolean equalsIgnoreCaseAny(String a, String... others) {
-        for (String other : others) {
-            if (a.equalsIgnoreCase(other)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     private void flushWriter() {
         if (printWriter != null) {
             printWriter.flush();
@@ -380,15 +395,14 @@ final class CompressingHttpServletResponse extends HttpServletResponseWrapper {
     }
 
     /**
-     * <p>Checks to see if the given content type should be compressed. If the
-     * content type indicates it is already a compressed format (e.g. contains
-     * "gzip") then this wil return {@code false}.</p>
+     * <p>Checks to see if the given content type should be compressed. If the content type
+     * indicates it is already a compressed format (e.g. contains "gzip") then this wil return
+     * {@code false}.</p>
      *
-     * <p>Otherwise this checks against the {@code includeContentTypes} and
-     * {@code excludeContentTypes} filter init parameters; if the former is set
-     * and the given content type is in that parameter's list, or if the latter
-     * is set and the content type is not in that list, then this method returns
-     * {@code true}.</p>
+     * <p>Otherwise this checks against the {@code includeContentTypes} and {@code
+     * excludeContentTypes} filter init parameters; if the former is set and the given content type
+     * is in that parameter's list, or if the latter is set and the content type is not in that
+     * list, then this method returns {@code true}.</p>
      *
      * @param contentType content type of response
      * @return true if and only if the given content type should be compressed
@@ -413,22 +427,10 @@ final class CompressingHttpServletResponse extends HttpServletResponseWrapper {
         return context.isIncludeContentTypes() ? isContained : !isContained;
     }
 
-    private static boolean isCompressableEncoding(String encoding) {
-        if (encoding == null) {
-            return true;
-        }
-        for (String compressionEncoding : CompressingStreamFactory.ALL_COMPRESSION_ENCODINGS) {
-            if (encoding.equals(compressionEncoding)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
     private CompressingServletOutputStream getCompressingServletOutputStream() throws IOException {
         if (compressingSOS == null) {
             compressingSOS =
-                    new CompressingServletOutputStream(httpResponse.getOutputStream(),
+                new CompressingServletOutputStream(httpResponse.getOutputStream(),
                     compressingStreamFactory,
                     this,
                     context);
@@ -451,9 +453,9 @@ final class CompressingHttpServletResponse extends HttpServletResponseWrapper {
             return true;
         }
         if (savedContentLengthSet
-                && savedContentLength < (long) context.getCompressionThreshold()) {
+            && savedContentLength < (long) context.getCompressionThreshold()) {
             LOGGER.debug("Will not compress since page has set a content length which is less than "
-                    + "the compression threshold: " + savedContentLength);
+                + "the compression threshold: " + savedContentLength);
             return true;
         }
         if (noTransformSet) {

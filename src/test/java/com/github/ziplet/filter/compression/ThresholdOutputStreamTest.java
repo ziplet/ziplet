@@ -16,11 +16,10 @@
 package com.github.ziplet.filter.compression;
 
 import com.mockrunner.mock.web.WebMockObjectFactory;
-import junit.framework.TestCase;
-
-import javax.servlet.FilterConfig;
 import java.io.ByteArrayOutputStream;
 import java.util.Arrays;
+import javax.servlet.FilterConfig;
+import junit.framework.TestCase;
 
 /**
  * Tests {@link CompressingFilter}.
@@ -42,9 +41,9 @@ public final class ThresholdOutputStreamTest extends TestCase {
         FilterConfig filterConfig = factory.getMockFilterConfig();
         CompressingFilterContext context = new CompressingFilterContext(filterConfig);
         tos = new ThresholdOutputStream(baos,
-                CompressingStreamFactory.getFactoryForContentEncoding("gzip"),
-                context,
-                callback);
+            CompressingStreamFactory.getFactoryForContentEncoding("gzip"),
+            context,
+            callback);
     }
 
     public void testWriteFlush() throws Exception {

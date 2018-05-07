@@ -16,16 +16,14 @@
 package com.github.ziplet.filter.compression;
 
 import com.github.ziplet.filter.compression.statistics.CompressingFilterStats;
-
 import java.io.IOException;
 import java.io.InputStream;
 
 /**
- * An {@link InputStream} that decorates another {@link InputStream} and notes
- * when bytes are read from the stream. Callers create an instance of
- * {@link StatsInputStream} with an instance of {@link InputStream}, which
- * receives notification of reads. This information might be used to tally the
- * number of bytes read from a stream.
+ * An {@link InputStream} that decorates another {@link InputStream} and notes when bytes are read
+ * from the stream. Callers create an instance of {@link StatsInputStream} with an instance of
+ * {@link InputStream}, which receives notification of reads. This information might be used to
+ * tally the number of bytes read from a stream.
  *
  * @author Sean Owen
  * @since 1.6
@@ -36,7 +34,8 @@ public class StatsInputStream extends InputStream {
     protected final CompressingFilterStats stats;
     protected final StatsField field;
 
-    public StatsInputStream(InputStream inputStream, CompressingFilterStats stats, StatsField field) {
+    public StatsInputStream(InputStream inputStream, CompressingFilterStats stats,
+        StatsField field) {
         assert inputStream != null && stats != null;
         this.inputStream = inputStream;
         this.stats = stats;
@@ -51,7 +50,7 @@ public class StatsInputStream extends InputStream {
     }
 
     private void notifyRequestBytesRead(long result) {
-            notifyBytesRead(result);
+        notifyBytesRead(result);
     }
 
     private void notifyBytesRead(long result) {

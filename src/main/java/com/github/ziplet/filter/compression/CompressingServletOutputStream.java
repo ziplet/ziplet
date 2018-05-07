@@ -15,22 +15,21 @@
  */
 package com.github.ziplet.filter.compression;
 
+import java.io.IOException;
+import java.io.OutputStream;
+import javax.servlet.ServletOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.servlet.ServletOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-
 /**
- * Implementation of {@link ServletOutputStream} which will optionally compress
- * data written to it.
+ * Implementation of {@link ServletOutputStream} which will optionally compress data written to it.
  *
  * @author Sean Owen
  */
 final class CompressingServletOutputStream extends ServletOutputStream {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(CompressingServletOutputStream.class);
+    private static final Logger LOGGER = LoggerFactory
+        .getLogger(CompressingServletOutputStream.class);
     private final OutputStream rawStream;
     private final CompressingStreamFactory compressingStreamFactory;
     private final CompressingHttpServletResponse compressingResponse;
@@ -40,9 +39,9 @@ final class CompressingServletOutputStream extends ServletOutputStream {
     private boolean aborted;
 
     CompressingServletOutputStream(OutputStream rawStream,
-            CompressingStreamFactory compressingStreamFactory,
-            CompressingHttpServletResponse compressingResponse,
-            CompressingFilterContext context) {
+        CompressingStreamFactory compressingStreamFactory,
+        CompressingHttpServletResponse compressingResponse,
+        CompressingFilterContext context) {
         this.rawStream = rawStream;
         this.compressingStreamFactory = compressingStreamFactory;
         this.compressingResponse = compressingResponse;
@@ -132,7 +131,7 @@ final class CompressingServletOutputStream extends ServletOutputStream {
     private void checkWriteState() {
         if (thresholdOutputStream == null) {
             thresholdOutputStream =
-                    new ThresholdOutputStream(rawStream,
+                new ThresholdOutputStream(rawStream,
                     compressingStreamFactory,
                     context,
                     new ResponseBufferCommitmentCallback(compressingResponse));
@@ -146,7 +145,7 @@ final class CompressingServletOutputStream extends ServletOutputStream {
     }
 
     private static final class ResponseBufferCommitmentCallback
-            implements ThresholdOutputStream.BufferCommitmentCallback {
+        implements ThresholdOutputStream.BufferCommitmentCallback {
 
         private final CompressingHttpServletResponse response;
 

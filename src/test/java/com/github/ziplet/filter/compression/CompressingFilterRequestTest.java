@@ -15,17 +15,12 @@
  */
 package com.github.ziplet.filter.compression;
 
+import com.github.ziplet.filter.compression.statistics.CompressingFilterStatsImpl;
 import com.mockrunner.mock.web.MockFilterConfig;
 import com.mockrunner.mock.web.MockHttpServletRequest;
 import com.mockrunner.mock.web.MockHttpServletResponse;
 import com.mockrunner.mock.web.WebMockObjectFactory;
 import com.mockrunner.servlet.ServletTestModule;
-import com.github.ziplet.filter.compression.statistics.CompressingFilterStatsImpl;
-import junit.framework.TestCase;
-
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -33,6 +28,10 @@ import java.util.Arrays;
 import java.util.Random;
 import java.util.zip.DeflaterOutputStream;
 import java.util.zip.GZIPOutputStream;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import junit.framework.TestCase;
 
 /**
  * Tests {@link CompressingFilter} compressed requests.
@@ -50,8 +49,19 @@ public final class CompressingFilterRequestTest extends TestCase {
         BIG_DOCUMENT = new byte[10000];
         r.nextBytes(BIG_DOCUMENT);
     }
+
     private WebMockObjectFactory factory;
     private ServletTestModule module;
+
+    private static byte[] getCompressedOutput(byte[] output) throws IOException {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        DeflaterOutputStream gzipOut = new GZIPOutputStream(baos);
+        gzipOut.write(output);
+        gzipOut.finish();
+        gzipOut.close();
+        baos.close();
+        return baos.toByteArray();
+    }
 
     @Override
     public void setUp() throws Exception {
@@ -78,7 +88,7 @@ public final class CompressingFilterRequestTest extends TestCase {
             module.setServlet(new HttpServlet() {
                 @Override
                 public void doGet(HttpServletRequest request,
-                        HttpServletResponse response) throws IOException {
+                    HttpServletResponse response) throws IOException {
                     InputStream sis = request.getInputStream();
                     byte[] buffer = new byte[1024];
                     int bytesRead;
@@ -103,12 +113,16 @@ public final class CompressingFilterRequestTest extends TestCase {
 
         assertTrue(Arrays.equals(BIG_DOCUMENT, baos.toByteArray()));
 
-        CompressingFilterStatsImpl stats = (CompressingFilterStatsImpl) factory.getMockServletContext().getAttribute("com.github.ziplet.filter.compression.statistics.CompressingFilterStatsImpl");
+        CompressingFilterStatsImpl stats = (CompressingFilterStatsImpl) factory
+            .getMockServletContext()
+            .getAttribute(
+                "com.github.ziplet.filter.compression.statistics.CompressingFilterStatsImpl");
         assertNotNull(stats);
 
         assertEquals(1, stats.getNumRequestsCompressed());
         assertEquals(0, stats.getTotalRequestsNotCompressed());
-        assertEquals((double) BIG_DOCUMENT.length / (double) compressedBigDoc.length, stats.getRequestAverageCompressionRatio());
+        assertEquals((double) BIG_DOCUMENT.length / (double) compressedBigDoc.length,
+            stats.getRequestAverageCompressionRatio());
         assertEquals((long) compressedBigDoc.length, stats.getRequestCompressedBytes());
         assertEquals((long) BIG_DOCUMENT.length, stats.getRequestInputBytes());
 
@@ -117,15 +131,5 @@ public final class CompressingFilterRequestTest extends TestCase {
         assertEquals(0.0, stats.getResponseAverageCompressionRatio());
         assertEquals(0L, stats.getResponseCompressedBytes());
         assertEquals(0L, stats.getResponseInputBytes());
-    }
-
-    private static byte[] getCompressedOutput(byte[] output) throws IOException {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        DeflaterOutputStream gzipOut = new GZIPOutputStream(baos);
-        gzipOut.write(output);
-        gzipOut.finish();
-        gzipOut.close();
-        baos.close();
-        return baos.toByteArray();
     }
 }

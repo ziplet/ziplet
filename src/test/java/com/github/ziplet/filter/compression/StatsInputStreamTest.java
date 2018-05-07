@@ -17,11 +17,9 @@ package com.github.ziplet.filter.compression;
 
 import com.github.ziplet.filter.compression.statistics.CompressingFilterStats;
 import com.github.ziplet.filter.compression.statistics.CompressingFilterStatsImpl;
-import junit.framework.TestCase;
-
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.io.OutputStream;
+import junit.framework.TestCase;
 
 /**
  * Tests {@link StatsInputStream}.
@@ -38,7 +36,8 @@ public final class StatsInputStreamTest extends TestCase {
     public void setUp() throws Exception {
         super.setUp();
         bais = new ByteArrayInputStream(new byte[100]);
-        statsIn = new MockStatsInputStream(bais, new CompressingFilterStatsImpl(), StatsField.REQUEST_INPUT_BYTES);
+        statsIn = new MockStatsInputStream(bais, new CompressingFilterStatsImpl(),
+            StatsField.REQUEST_INPUT_BYTES);
     }
 
     public void testStats() throws Exception {
@@ -53,12 +52,13 @@ public final class StatsInputStreamTest extends TestCase {
 
     private static final class MockStatsInputStream extends StatsInputStream {
 
-        public MockStatsInputStream(InputStream inputStream, CompressingFilterStats stats, StatsField field) {
+        public MockStatsInputStream(InputStream inputStream, CompressingFilterStats stats,
+            StatsField field) {
             super(inputStream, stats, field);
         }
 
         public long getTotalBytesRead() {
-            return ((CompressingFilterStatsImpl)this.stats).getRequestInputBytes();
+            return ((CompressingFilterStatsImpl) this.stats).getRequestInputBytes();
         }
     }
 }

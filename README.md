@@ -1,6 +1,7 @@
 ziplet
 ===============
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.ziplet/ziplet/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.github.ziplet/ziplet)
+[![Build Status](https://travis-ci.org/ziplet/ziplet.svg?branch=master)](https://travis-ci.org/ziplet/ziplet)
 
 This filter can, based on HTTP headers in a HttpServletRequest, compress data written to the HttpServletResponse, or decompress data read from the request. When supported by the client browser, this can potentially greatly reduce the number of bytes written across the network from and to the client. As a Filter, this class can also be easily added to any J2EE 1.3+ web application.
 
@@ -23,7 +24,7 @@ Add the ziplet-XX.jar file containing CompressingFilter to your web application'
     <dependency>
         <groupId>com.github.ziplet</groupId>
         <artifactId>ziplet</artifactId>
-        <version>2.1.2</version>
+        <version>2.3.0</version>
     </dependency>
 ```
 
@@ -51,6 +52,8 @@ CompressingFilter supports the following parameters:
 **debug** (optional): if set to "true", additional debug information will be written to the servlet log. Defaults to false.
 
 **compressionThreshold** (optional): sets the size of the smallest response that will be compressed, in bytes. That is, if less than compressionThreshold bytes are written to the response, it will not be compressed and the response will go to the client unmodified. If 0, compression always begins immediately. Defaults to 1024.
+
+**compressionLevel** (optional): sets the compression level used for response gzip/deflate compression, from 1 (fastest compression, less CPU) to 9 (best compression, more CPU), or -1 (platform default, currently equivalent to 6). Defaults to -1.
 
 **statsEnabled** (optional): enables collection of statistics. See CompressingFilterStats. Defaults to false. Don't use this in high traffic environments!
 
