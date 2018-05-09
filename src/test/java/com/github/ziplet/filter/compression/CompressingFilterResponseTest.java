@@ -452,15 +452,17 @@ public final class CompressingFilterResponseTest extends TestCase {
     private void verifyOutput(final String output, boolean shouldCompress) throws IOException {
         verifyOutput(output, shouldCompress, false);
     }
-
+    
     private void verifyOutput(final String output, boolean shouldCompress, boolean noVaryHeader)
         throws IOException {
+        final String originalEtag = "\"" + String.valueOf(output.hashCode()) + "\""; // Fake ETag
+        final String compressedEtag = "\"" + String.valueOf(output.hashCode()) + "-gzip\"";
         if (module.getServlet() == null) {
             module.setServlet(new HttpServlet() {
                 @Override
                 public void doGet(HttpServletRequest request,
                     HttpServletResponse response) throws IOException {
-                    response.setHeader("ETag", String.valueOf(output.hashCode())); // Fake ETag
+                    response.setHeader("ETag", originalEtag);
                     response.getWriter().print(output);
                 }
             });
@@ -492,10 +494,11 @@ public final class CompressingFilterResponseTest extends TestCase {
             assertTrue(response.containsHeader("Content-Encoding"));
             assertTrue(response.containsHeader("X-Compressed-By"));
             assertTrue(
-                !response.containsHeader("ETag") || response.getHeader("ETag").endsWith("-gzip"));
+                !response.containsHeader("ETag") || response.getHeader("ETag").equals(compressedEtag));
         } else {
             assertEquals(output, module.getOutput());
             assertNull(module.getRequestAttribute(CompressingFilter.COMPRESSED_KEY));
+            assertTrue(!response.containsHeader("ETag") || response.getHeader("ETag").equals(originalEtag));
         }
 
 

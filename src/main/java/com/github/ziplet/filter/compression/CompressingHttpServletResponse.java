@@ -224,7 +224,8 @@ final class CompressingHttpServletResponse extends HttpServletResponseWrapper {
     private void setETagHeader() {
         if (savedETag != null) {
             if (compressing && !savedETag.startsWith("W")) {
-                httpResponse.setHeader(ETAG_HEADER, savedETag + '-' + compressedContentEncoding);
+        	String etag = savedETag.replaceFirst("(\"?)$", "-" + compressedContentEncoding + "$1");
+                httpResponse.setHeader(ETAG_HEADER, etag);
             } else {
                 httpResponse.setHeader(ETAG_HEADER, savedETag);
             }
