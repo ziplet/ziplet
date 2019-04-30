@@ -1,3 +1,6 @@
+Version 2.4.1
+- Guava java format set as provided dependency
+
 Version 2.3.0
 - Added compressionLevel parameter to control gzip/deflate compression
 - Reformat project based on intellij-style.xml
