@@ -118,7 +118,7 @@ public final class CompressingFilterResponseTest extends TestCase {
         config.setInitParameter("debug", "true");
         config.setInitParameter("statsEnabled", "true");
         config.setInitParameter("excludePathPatterns", ".*badpath.*,whocares");
-        config.setInitParameter("excludeContentTypes", "text/badtype,whatever");
+        config.setInitParameter("excludeContentTypes", "text/html,application/json");
         config.setInitParameter("excludeUserAgentPatterns", "Nokia.*");
         config.setInitParameter("noVaryHeaderPatterns", ".*MSIE 8.*");
         module = new ServletTestModule(factory);
@@ -213,7 +213,7 @@ public final class CompressingFilterResponseTest extends TestCase {
             @Override
             public void doGet(HttpServletRequest request,
                 HttpServletResponse response) throws IOException {
-                response.setContentType("text/badtype; otherstuff");
+                response.setContentType("text/html");
                 response.getWriter().print(BIG_DOCUMENT);
             }
         });
@@ -225,7 +225,7 @@ public final class CompressingFilterResponseTest extends TestCase {
             @Override
             public void doGet(HttpServletRequest request,
                 HttpServletResponse response) throws IOException {
-                response.setContentType("text/goodtype; otherstuff");
+                response.setContentType("text/plain");
                 response.getWriter().print(BIG_DOCUMENT);
             }
         });
@@ -493,6 +493,8 @@ public final class CompressingFilterResponseTest extends TestCase {
 
             assertTrue(response.containsHeader("Content-Encoding"));
             assertTrue(response.containsHeader("X-Compressed-By"));
+            assertTrue(response.containsHeader("Content-Length"));
+            assertEquals(Long.parseLong(response.getHeader("Content-Length")), 10000L);
             assertTrue(
                 !response.containsHeader("ETag") || response.getHeader("ETag").equals(compressedEtag));
         } else {

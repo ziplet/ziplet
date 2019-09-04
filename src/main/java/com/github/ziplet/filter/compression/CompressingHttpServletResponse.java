@@ -18,9 +18,12 @@ package com.github.ziplet.filter.compression;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.util.stream.Stream;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpServletResponseWrapper;
+
+import com.google.common.net.MediaType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -92,6 +95,11 @@ final class CompressingHttpServletResponse extends HttpServletResponseWrapper {
             }
         }
         return true;
+    }
+
+
+    public boolean isSavedContentLengthSet() {
+        return savedContentLengthSet;
     }
 
     @Override
@@ -289,6 +297,10 @@ final class CompressingHttpServletResponse extends HttpServletResponseWrapper {
         httpResponse.resetBuffer();
     }
 
+    public void setContentLengthHeader(long contentLength) {
+        httpResponse.setHeader(CONTENT_LENGTH_HEADER, String.valueOf(contentLength));
+    }
+
     @Override
     public void setContentLength(int contentLength) {
         // since servlet spec 3.1 we can use setContentLengthLong to accommodate long pages
@@ -407,7 +419,7 @@ final class CompressingHttpServletResponse extends HttpServletResponseWrapper {
      * @param contentType content type of response
      * @return true if and only if the given content type should be compressed
      */
-    private boolean isCompressableContentType(String contentType) {
+    private boolean isCompressableContentType(final String contentType) {
         String contentTypeOnly = contentType;
         if (contentType != null) {
             int semicolonIndex = contentType.indexOf((int) ';');
@@ -423,8 +435,18 @@ final class CompressingHttpServletResponse extends HttpServletResponseWrapper {
                 return false;
             }
         }
-        boolean isContained = context.getContentTypes().contains(contentTypeOnly);
+        boolean isContained = checkMediaTypeContained(contentType);
         return context.isIncludeContentTypes() ? isContained : !isContained;
+    }
+
+    private boolean checkMediaTypeContained(String contentType) {
+        MediaType requestMediaType = MediaType.parse(contentType);
+        for(MediaType m : context.getContentTypes()) {
+            if(requestMediaType.is(m)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private CompressingServletOutputStream getCompressingServletOutputStream() throws IOException {

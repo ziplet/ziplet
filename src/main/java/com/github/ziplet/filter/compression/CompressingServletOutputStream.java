@@ -37,6 +37,7 @@ final class CompressingServletOutputStream extends ServletOutputStream {
     private ThresholdOutputStream thresholdOutputStream;
     private boolean closed;
     private boolean aborted;
+    private long finalSize;
 
     CompressingServletOutputStream(OutputStream rawStream,
         CompressingStreamFactory compressingStreamFactory,
@@ -56,6 +57,7 @@ final class CompressingServletOutputStream extends ServletOutputStream {
         checkWriteState();
         assert thresholdOutputStream != null;
         thresholdOutputStream.write(b);
+        finalSize += b.length;
     }
 
     @Override
@@ -64,6 +66,7 @@ final class CompressingServletOutputStream extends ServletOutputStream {
         checkWriteState();
         assert thresholdOutputStream != null;
         thresholdOutputStream.write(b, offset, length);
+        finalSize += length;
     }
 
     @Override
@@ -72,6 +75,7 @@ final class CompressingServletOutputStream extends ServletOutputStream {
         checkWriteState();
         assert thresholdOutputStream != null;
         thresholdOutputStream.write(b);
+        finalSize += b;
     }
 
     @Override
@@ -91,6 +95,9 @@ final class CompressingServletOutputStream extends ServletOutputStream {
             } else {
                 thresholdOutputStream.close();
             }
+        }
+        if(!compressingResponse.isSavedContentLengthSet()) {
+            compressingResponse.setContentLengthHeader(finalSize);
         }
     }
 

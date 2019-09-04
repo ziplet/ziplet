@@ -27,6 +27,8 @@ import java.util.zip.Deflater;
 import javax.servlet.FilterConfig;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
+
+import com.google.common.net.MediaType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,7 +51,7 @@ final class CompressingFilterContext {
     private final int compressionLevel;
     private final ServletContext servletContext;
     private final boolean includeContentTypes;
-    private final Collection<String> contentTypes;
+    private final Collection<MediaType> contentTypes;
     // Thanks to Peter Bryant for suggesting this functionality:
     private final boolean includePathPatterns;
     private final Collection<Pattern> pathPatterns;
@@ -216,14 +218,15 @@ final class CompressingFilterContext {
         return value;
     }
 
-    private static Collection<String> parseContentTypes(String contentTypesString) {
+    private static Collection<MediaType> parseContentTypes(String contentTypesString) {
         if (contentTypesString == null) {
             return Collections.emptyList();
         }
-        List<String> contentTypes = new ArrayList<String>(5);
-        for (String contentType : COMMA.split(contentTypesString)) {
+        String[] mediaTypes = COMMA.split(contentTypesString);
+        List<MediaType> contentTypes = new ArrayList<MediaType>(mediaTypes.length);
+        for (String contentType : mediaTypes) {
             if (contentType.length() > 0) {
-                contentTypes.add(contentType);
+                contentTypes.add(MediaType.parse(contentType));
             }
         }
         return Collections.unmodifiableList(contentTypes);
@@ -270,7 +273,7 @@ final class CompressingFilterContext {
         return includeContentTypes;
     }
 
-    Collection<String> getContentTypes() {
+    Collection<MediaType> getContentTypes() {
         return contentTypes;
     }
 
