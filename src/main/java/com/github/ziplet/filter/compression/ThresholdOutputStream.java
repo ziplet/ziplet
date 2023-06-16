@@ -15,11 +15,12 @@
  */
 package com.github.ziplet.filter.compression;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author Sean Owen
@@ -40,11 +41,11 @@ final class ThresholdOutputStream extends OutputStream {
     private boolean forceOut1;
 
     ThresholdOutputStream(OutputStream out1,
-        CompressingStreamFactory compressingStreamFactory,
-        CompressingFilterContext context,
-        BufferCommitmentCallback thresholdReachedCallback) {
+                          CompressingStreamFactory compressingStreamFactory,
+                          CompressingFilterContext context,
+                          BufferCommitmentCallback thresholdReachedCallback) {
         assert out1 != null && compressingStreamFactory != null
-            && context != null && thresholdReachedCallback != null;
+                && context != null && thresholdReachedCallback != null;
         buffering = true;
         this.out1 = out1;
         this.compressingStreamFactory = compressingStreamFactory;

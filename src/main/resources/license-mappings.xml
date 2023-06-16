@@ -1,70 +1,70 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <license-lookup xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xmlns="https://source.jasig.org/schemas/maven-notice-plugin/license-lookup"
-    xsi:schemaLocation="https://source.jasig.org/schemas/maven-notice-plugin/license-lookup https://source.jasig.org/schemas/maven-notice-plugin/license-lookup/license-lookup-v1.0.xsd">
+                xmlns="https://source.jasig.org/schemas/maven-notice-plugin/license-lookup"
+                xsi:schemaLocation="https://source.jasig.org/schemas/maven-notice-plugin/license-lookup https://source.jasig.org/schemas/maven-notice-plugin/license-lookup/license-lookup-v1.0.xsd">
 
-    <!-- https://commons.apache.org/proper/commons-bcel/ -->
-    <artifact>
-        <groupId>bcel</groupId>
-        <artifactId>bcel</artifactId>
-        <version>5.1</version>
-        <license>The Apache Software License, Version 2.0</license>
-    </artifact>
+  <!-- https://commons.apache.org/proper/commons-bcel/ -->
+  <artifact>
+    <groupId>bcel</groupId>
+    <artifactId>bcel</artifactId>
+    <version>5.1</version>
+    <license>The Apache Software License, Version 2.0</license>
+  </artifact>
 
-    <!-- http://attic.apache.org/projects/jakarta-regexp.html -->
-    <artifact>
-        <groupId>jakarta-regexp</groupId>
-        <artifactId>jakarta-regexp</artifactId>
-        <version>1.4</version>
-        <license>The Apache Software License, Version 2.0</license>
-    </artifact>
-    <artifact>
-        <groupId>regexp</groupId>
-        <artifactId>regexp</artifactId>
-        <version>1.2</version>
-        <license>The Apache Software License, Version 2.0</license>
-    </artifact>
+  <!-- http://attic.apache.org/projects/jakarta-regexp.html -->
+  <artifact>
+    <groupId>jakarta-regexp</groupId>
+    <artifactId>jakarta-regexp</artifactId>
+    <version>1.4</version>
+    <license>The Apache Software License, Version 2.0</license>
+  </artifact>
+  <artifact>
+    <groupId>regexp</groupId>
+    <artifactId>regexp</artifactId>
+    <version>1.2</version>
+    <license>The Apache Software License, Version 2.0</license>
+  </artifact>
 
-    <!-- http://stackoverflow.com/questions/16343572/license-for-glassfish-javax-servlet-servlet-api-version-2-5 -->
-    <!-- https://glassfish.java.net/nonav/public/CDDL+GPL.html -->
-    <artifact>
-        <groupId>javax.servlet</groupId>
-        <artifactId>servlet-api</artifactId>
-        <version>2.5</version>
-        <license>CDDL 1.1 or GPL2 w/ CPE</license>
-    </artifact>
+  <!-- http://stackoverflow.com/questions/16343572/license-for-glassfish-javax-servlet-servlet-api-version-2-5 -->
+  <!-- https://glassfish.java.net/nonav/public/CDDL+GPL.html -->
+  <artifact>
+    <groupId>jakarta.servlet</groupId>
+    <artifactId>servlet-api</artifactId>
+    <version>2.5</version>
+    <license>CDDL 1.1 or GPL2 w/ CPE</license>
+  </artifact>
 
-    <!-- http://www.jdom.org/docs/faq.html#a0030 -->
-    <artifact>
-        <groupId>jdom</groupId>
-        <artifactId>jdom</artifactId>
-        <version>1.0</version>
-        <license>JDOM license (Apache style),
-            https://github.com/hunterhacker/jdom/blob/master/LICENSE.txt
-        </license>
-    </artifact>
+  <!-- http://www.jdom.org/docs/faq.html#a0030 -->
+  <artifact>
+    <groupId>jdom</groupId>
+    <artifactId>jdom</artifactId>
+    <version>1.0</version>
+    <license>JDOM license (Apache style),
+      https://github.com/hunterhacker/jdom/blob/master/LICENSE.txt
+    </license>
+  </artifact>
 
-    <!-- http://nekohtml.sourceforge.net/ -->
-    <artifact>
-        <groupId>nekohtml</groupId>
-        <artifactId>nekohtml</artifactId>
-        <version>0.9.5</version>
-        <license>The Apache Software License, Version 2.0</license>
-    </artifact>
+  <!-- http://nekohtml.sourceforge.net/ -->
+  <artifact>
+    <groupId>nekohtml</groupId>
+    <artifactId>nekohtml</artifactId>
+    <version>0.9.5</version>
+    <license>The Apache Software License, Version 2.0</license>
+  </artifact>
 
-    <!-- http://attic.apache.org/projects/jakarta-oro.html -->
-    <artifact>
-        <groupId>oro</groupId>
-        <artifactId>oro</artifactId>
-        <version>2.0.8</version>
-        <license>The Apache Software License, Version 1.1</license>
-    </artifact>
+  <!-- http://attic.apache.org/projects/jakarta-oro.html -->
+  <artifact>
+    <groupId>oro</groupId>
+    <artifactId>oro</artifactId>
+    <version>2.0.8</version>
+    <license>The Apache Software License, Version 1.1</license>
+  </artifact>
 
-    <!-- http://xerces.apache.org/ -->
-    <artifact>
-        <groupId>xerces</groupId>
-        <artifactId>xercesImpl</artifactId>
-        <version>2.4.0</version>
-        <license>The Apache Software License, Version 2.0</license>
-    </artifact>
+  <!-- http://xerces.apache.org/ -->
+  <artifact>
+    <groupId>xerces</groupId>
+    <artifactId>xercesImpl</artifactId>
+    <version>2.4.0</version>
+    <license>The Apache Software License, Version 2.0</license>
+  </artifact>
 </license-lookup>

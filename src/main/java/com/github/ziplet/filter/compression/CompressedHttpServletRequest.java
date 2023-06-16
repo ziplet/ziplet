@@ -15,16 +15,17 @@
  */
 package com.github.ziplet.filter.compression;
 
+import jakarta.servlet.ServletInputStream;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequestWrapper;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Enumeration;
-import javax.servlet.ServletInputStream;
-import javax.servlet.ServletRequest;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletRequestWrapper;
 
 /**
  * <p>Implementation of {@link HttpServletRequest} which can decompress request bodies that have
@@ -44,8 +45,8 @@ final class CompressedHttpServletRequest extends HttpServletRequestWrapper {
     private boolean isGetReaderCalled;
 
     CompressedHttpServletRequest(HttpServletRequest httpRequest,
-        CompressingStreamFactory compressingStreamFactory,
-        CompressingFilterContext context) {
+                                 CompressingStreamFactory compressingStreamFactory,
+                                 CompressingFilterContext context) {
         super(httpRequest);
         this.httpRequest = httpRequest;
         this.compressingStreamFactory = compressingStreamFactory;
@@ -58,7 +59,7 @@ final class CompressedHttpServletRequest extends HttpServletRequestWrapper {
         // Filter Content-Encoding since we're handing decompression ourselves;
         // filter Accept-Encoding so that downstream services don't try to compress too
         return CompressingHttpServletResponse.CONTENT_ENCODING_HEADER.equalsIgnoreCase(headerName)
-            || CompressingHttpServletResponse.ACCEPT_ENCODING_HEADER.equalsIgnoreCase(headerName);
+                || CompressingHttpServletResponse.ACCEPT_ENCODING_HEADER.equalsIgnoreCase(headerName);
     }
 
     @Override
@@ -78,8 +79,8 @@ final class CompressedHttpServletRequest extends HttpServletRequestWrapper {
         isGetReaderCalled = true;
         if (bufferedReader == null) {
             bufferedReader = new BufferedReader(
-                new InputStreamReader(getCompressingServletInputStream(),
-                    getCharacterEncoding()));
+                    new InputStreamReader(getCompressingServletInputStream(),
+                            getCharacterEncoding()));
         }
         return bufferedReader;
     }
@@ -87,8 +88,8 @@ final class CompressedHttpServletRequest extends HttpServletRequestWrapper {
     private CompressingServletInputStream getCompressingServletInputStream() throws IOException {
         if (compressedSIS == null) {
             compressedSIS = new CompressingServletInputStream(httpRequest.getInputStream(),
-                compressingStreamFactory,
-                context);
+                    compressingStreamFactory,
+                    context);
         }
         return compressedSIS;
     }
@@ -99,12 +100,12 @@ final class CompressedHttpServletRequest extends HttpServletRequestWrapper {
     }
 
     @Override
-    public Enumeration<?> getHeaders(String header) {
-        Enumeration<?> original = super.getHeaders(header);
+    public Enumeration<String> getHeaders(String header) {
+        Enumeration<String> original = super.getHeaders(header);
         if (original == null) {
             return null; // match container's behavior exactly in this case
         }
-        return isFilteredHeader(header) ? EmptyEnumeration.getInstance() : original;
+        return isFilteredHeader(header) ? (Enumeration<String>) EmptyEnumeration.getInstance() : original;
     }
 
     @Override
@@ -118,8 +119,8 @@ final class CompressedHttpServletRequest extends HttpServletRequestWrapper {
     }
 
     @Override
-    public Enumeration<?> getHeaderNames() {
-        Enumeration<?> original = super.getHeaderNames();
+    public Enumeration<String> getHeaderNames() {
+        Enumeration<String> original = super.getHeaderNames();
         if (original == null) {
             return null; // match container's behavior exactly in this case
         }

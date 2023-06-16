@@ -24,7 +24,7 @@ import java.util.NoSuchElementException;
  * @author Sean Owen
  * @since 1.6
  */
-final class EmptyEnumeration implements Enumeration<Object> {
+final class EmptyEnumeration implements Enumeration {
 
     private static final Enumeration<?> instance = new EmptyEnumeration();
 

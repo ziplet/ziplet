@@ -1,6 +1,7 @@
 package com.github.ziplet.filter.compression;
 
 import com.github.ziplet.filter.compression.statistics.CompressingFilterStats;
+
 import java.io.Serializable;
 
 /**
