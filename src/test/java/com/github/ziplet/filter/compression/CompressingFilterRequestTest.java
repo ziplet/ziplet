@@ -16,11 +16,16 @@
 package com.github.ziplet.filter.compression;
 
 import com.github.ziplet.filter.compression.statistics.CompressingFilterStatsImpl;
-import com.mockrunner.mock.web.MockFilterConfig;
-import com.mockrunner.mock.web.MockHttpServletRequest;
-import com.mockrunner.mock.web.MockHttpServletResponse;
-import com.mockrunner.mock.web.WebMockObjectFactory;
-import com.mockrunner.servlet.ServletTestModule;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import junit.framework.TestCase;
+import org.springframework.http.HttpMethod;
+import org.springframework.mock.web.MockFilterChain;
+import org.springframework.mock.web.MockFilterConfig;
+import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.mock.web.MockServletConfig;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -28,10 +33,6 @@ import java.util.Arrays;
 import java.util.Random;
 import java.util.zip.DeflaterOutputStream;
 import java.util.zip.GZIPOutputStream;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import junit.framework.TestCase;
 
 /**
  * Tests {@link CompressingFilter} compressed requests.
@@ -50,8 +51,11 @@ public final class CompressingFilterRequestTest extends TestCase {
         r.nextBytes(BIG_DOCUMENT);
     }
 
-    private WebMockObjectFactory factory;
-    private ServletTestModule module;
+    MockHttpServletRequest request;
+    MockHttpServletResponse response;
+    MockFilterConfig config;
+    CompressingFilter compressingFilter;
+
 
     private static byte[] getCompressedOutput(byte[] output) throws IOException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -66,63 +70,55 @@ public final class CompressingFilterRequestTest extends TestCase {
     @Override
     public void setUp() throws Exception {
         super.setUp();
-        factory = new WebMockObjectFactory();
-        MockFilterConfig config = factory.getMockFilterConfig();
-        config.setInitParameter("debug", "true");
-        config.setInitParameter("statsEnabled", "true");
-        module = new ServletTestModule(factory);
-        module.addFilter(new CompressingFilter(), true);
-        module.setDoChain(true);
+        config = new MockFilterConfig();
+        config.addInitParameter("debug", "true");
+        config.addInitParameter("statsEnabled", "true");
+        compressingFilter = new CompressingFilter();
+        compressingFilter.init(config);
+        request = new MockHttpServletRequest();
+        request.setMethod(HttpMethod.GET.name());
+        response =  new MockHttpServletResponse();
     }
 
     @Override
     public void tearDown() throws Exception {
-        factory = null;
-        module = null;
         super.tearDown();
     }
 
     public void testBigOutput() throws Exception {
         final ByteArrayOutputStream baos = new ByteArrayOutputStream(10000);
-        if (module.getServlet() == null) {
-            module.setServlet(new HttpServlet() {
-                @Override
-                public void doGet(HttpServletRequest request,
-                    HttpServletResponse response) throws IOException {
-                    InputStream sis = request.getInputStream();
-                    byte[] buffer = new byte[1024];
-                    int bytesRead;
-                    while ((bytesRead = sis.read(buffer)) > 0) {
-                        baos.write(buffer, 0, bytesRead);
-                    }
-                    baos.close();
+        HttpTestServlet servlet = new HttpTestServlet() {
+
+            @Override
+            public void doGet(HttpServletRequest request, HttpServletResponse resp) throws IOException {
+                InputStream sis = request.getInputStream();
+                byte[] buffer = new byte[1024];
+                int bytesRead;
+                while ((bytesRead = sis.read(buffer)) > 0) {
+                    baos.write(buffer, 0, bytesRead);
                 }
-            });
-        }
-        MockHttpServletRequest request = factory.getMockRequest();
+                baos.close();
+            }
+        };
+        servlet.init(new MockServletConfig());
+
         request.addHeader("Content-Encoding", "gzip");
         byte[] compressedBigDoc = getCompressedOutput(BIG_DOCUMENT);
-        request.setBodyContent(compressedBigDoc);
+        request.setContent(compressedBigDoc);
 
-        module.doGet();
+        new MockFilterChain(servlet, compressingFilter).doFilter(request, response);
 
-        MockHttpServletResponse response = factory.getMockResponse();
-        assertEquals(HttpServletResponse.SC_OK, response.getStatusCode());
-        assertFalse(response.wasRedirectSent());
-        assertFalse(response.wasErrorSent());
-
+        assertEquals(HttpServletResponse.SC_OK, response.getStatus());
+        assertTrue(response.getRedirectedUrl() == null);
+        assertTrue(response.getErrorMessage() == null);
         assertTrue(Arrays.equals(BIG_DOCUMENT, baos.toByteArray()));
-
-        CompressingFilterStatsImpl stats = (CompressingFilterStatsImpl) factory
-            .getMockServletContext()
-            .getAttribute(
-                "com.github.ziplet.filter.compression.statistics.CompressingFilterStatsImpl");
+        CompressingFilterStatsImpl stats = (CompressingFilterStatsImpl) config.getServletContext().getAttribute("com.github.ziplet.filter.compression.statistics.CompressingFilterStatsImpl");
         assertNotNull(stats);
 
         assertEquals(1, stats.getNumRequestsCompressed());
         assertEquals(0, stats.getTotalRequestsNotCompressed());
         assertEquals((double) BIG_DOCUMENT.length / (double) compressedBigDoc.length,
-            stats.getRequestAverageCompressionRatio());
+                stats.getRequestAverageCompressionRatio());
         assertEquals((long) compressedBigDoc.length, stats.getRequestCompressedBytes());
         assertEquals((long) BIG_DOCUMENT.length, stats.getRequestInputBytes());
 
@@ -132,4 +128,5 @@ public final class CompressingFilterRequestTest extends TestCase {
         assertEquals(0L, stats.getResponseCompressedBytes());
         assertEquals(0L, stats.getResponseInputBytes());
     }
+
 }

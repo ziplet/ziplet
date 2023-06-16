@@ -36,7 +36,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * @since 1.1
  */
 public class CompressingFilterStatsImpl implements Serializable,
-    com.github.ziplet.filter.compression.statistics.CompressingFilterStats {
+        com.github.ziplet.filter.compression.statistics.CompressingFilterStats {
 
     private static final long serialVersionUID = -2246829834191152845L;
     /**
@@ -155,7 +155,7 @@ public class CompressingFilterStatsImpl implements Serializable,
      */
     public double getResponseAverageCompressionRatio() {
         return getResponseCompressedBytes() == 0L ? 0.0 :
-            (double) getResponseInputBytes() / (double) getResponseCompressedBytes();
+                (double) getResponseInputBytes() / (double) getResponseCompressedBytes();
     }
 
     /**
@@ -213,7 +213,7 @@ public class CompressingFilterStatsImpl implements Serializable,
      */
     public double getRequestAverageCompressionRatio() {
         return requestCompressedBytes.get() == 0L ? 0.0 :
-            (double) requestInputBytes.get() / (double) requestCompressedBytes.get();
+                (double) requestInputBytes.get() / (double) requestCompressedBytes.get();
     }
 
     /**
@@ -222,9 +222,9 @@ public class CompressingFilterStatsImpl implements Serializable,
     @Override
     public String toString() {
         return "CompressingFilterStatsImpl[responses compressed: " + numResponsesCompressed
-            + ", avg. response compression ratio: " + getResponseAverageCompressionRatio()
-            + ", requests compressed: " + numRequestsCompressed
-            + ", avg. request compression ratio: " + getRequestAverageCompressionRatio() + ']';
+                + ", avg. response compression ratio: " + getResponseAverageCompressionRatio()
+                + ", requests compressed: " + numRequestsCompressed
+                + ", avg. request compression ratio: " + getRequestAverageCompressionRatio() + ']';
     }
 
     @Override

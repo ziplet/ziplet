@@ -18,17 +18,18 @@ package com.github.ziplet.filter.compression;
 import com.github.ziplet.filter.compression.statistics.CompressingFilterEmptyStats;
 import com.github.ziplet.filter.compression.statistics.CompressingFilterStats;
 import com.github.ziplet.filter.compression.statistics.CompressingFilterStatsImpl;
+import jakarta.servlet.FilterConfig;
+import jakarta.servlet.ServletContext;
+import jakarta.servlet.ServletException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
 import java.util.zip.Deflater;
-import javax.servlet.FilterConfig;
-import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Encapsulates the {@link CompressingFilter} environment, including configuration and runtime
@@ -60,7 +61,7 @@ final class CompressingFilterContext {
     private CompressingFilterStats stats;
 
     CompressingFilterContext(FilterConfig filterConfig, CompressingFilterStats stats)
-        throws ServletException {
+            throws ServletException {
         this(filterConfig);
         this.setCompressingFilterStats(stats);
     }
@@ -106,7 +107,7 @@ final class CompressingFilterContext {
         String excludeContentTypesString = filterConfig.getInitParameter("excludeContentTypes");
         if (includeContentTypesString != null && excludeContentTypesString != null) {
             throw new IllegalArgumentException(
-                "Can't specify both includeContentTypes and excludeContentTypes");
+                    "Can't specify both includeContentTypes and excludeContentTypes");
         }
 
         if (includeContentTypesString == null) {
@@ -119,14 +120,14 @@ final class CompressingFilterContext {
 
         if (!contentTypes.isEmpty()) {
             LOGGER.debug("Filter will " + (includeContentTypes ? "include" : "exclude")
-                + " only these content types: " + contentTypes);
+                    + " only these content types: " + contentTypes);
         }
 
         String includePathPatternsString = filterConfig.getInitParameter("includePathPatterns");
         String excludePathPatternsString = filterConfig.getInitParameter("excludePathPatterns");
         if (includePathPatternsString != null && excludePathPatternsString != null) {
             throw new IllegalArgumentException(
-                "Can't specify both includePathPatterns and excludePathPatterns");
+                    "Can't specify both includePathPatterns and excludePathPatterns");
         }
 
         if (includePathPatternsString == null) {
@@ -139,16 +140,16 @@ final class CompressingFilterContext {
 
         if (!pathPatterns.isEmpty() && LOGGER.isDebugEnabled()) {
             LOGGER.debug("Filter will " + (includePathPatterns ? "include" : "exclude")
-                + " only these file patterns: " + pathPatterns);
+                    + " only these file patterns: " + pathPatterns);
         }
 
         String includeUserAgentPatternsString = filterConfig
-            .getInitParameter("includeUserAgentPatterns");
+                .getInitParameter("includeUserAgentPatterns");
         String excludeUserAgentPatternsString = filterConfig
-            .getInitParameter("excludeUserAgentPatterns");
+                .getInitParameter("excludeUserAgentPatterns");
         if (includeUserAgentPatternsString != null && excludeUserAgentPatternsString != null) {
             throw new IllegalArgumentException(
-                "Can't specify both includeUserAgentPatterns and excludeUserAgentPatterns");
+                    "Can't specify both includeUserAgentPatterns and excludeUserAgentPatterns");
         }
 
         if (includeUserAgentPatternsString == null) {
@@ -161,7 +162,7 @@ final class CompressingFilterContext {
 
         if (!userAgentPatterns.isEmpty() && LOGGER.isDebugEnabled()) {
             LOGGER.debug("Filter will " + (includeUserAgentPatterns ? "include" : "exclude")
-                + " only these User-Agent patterns: " + userAgentPatterns);
+                    + " only these User-Agent patterns: " + userAgentPatterns);
         }
 
     }
@@ -171,7 +172,7 @@ final class CompressingFilterContext {
     }
 
     private static int readCompressionThresholdValue(FilterConfig filterConfig)
-        throws ServletException {
+            throws ServletException {
         String compressionThresholdString = filterConfig.getInitParameter("compressionThreshold");
         int value;
         if (compressionThresholdString != null) {
@@ -179,8 +180,8 @@ final class CompressingFilterContext {
                 value = Integer.parseInt(compressionThresholdString);
             } catch (NumberFormatException nfe) {
                 throw new ServletException(
-                    "Invalid compression threshold: " + compressionThresholdString,
-                    nfe);
+                        "Invalid compression threshold: " + compressionThresholdString,
+                        nfe);
             }
             if (value < 0) {
                 throw new ServletException("Compression threshold cannot be negative");
@@ -192,7 +193,7 @@ final class CompressingFilterContext {
     }
 
     private static int readCompressionLevelValue(FilterConfig filterConfig)
-        throws ServletException {
+            throws ServletException {
         String compressionLevelString = filterConfig.getInitParameter("compressionLevel");
         int value;
         if (compressionLevelString != null) {
@@ -200,7 +201,7 @@ final class CompressingFilterContext {
                 value = Integer.parseInt(compressionLevelString);
             } catch (NumberFormatException nfe) {
                 throw new ServletException("Invalid compression level: " + compressionLevelString,
-                    nfe);
+                        nfe);
             }
             if (value == -1) {
                 value = DEFAULT_COMPRESSION_LEVEL;
@@ -208,7 +209,7 @@ final class CompressingFilterContext {
                 throw new ServletException("Compression level cannot be negative, unless it is -1");
             } else if (value > Deflater.BEST_COMPRESSION) {
                 throw new ServletException(
-                    "Compression level cannot be greater than " + Deflater.BEST_COMPRESSION);
+                        "Compression level cannot be greater than " + Deflater.BEST_COMPRESSION);
             }
         } else {
             value = DEFAULT_COMPRESSION_LEVEL;

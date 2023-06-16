@@ -16,6 +16,8 @@
 package com.github.ziplet.filter.compression;
 
 import com.github.ziplet.filter.compression.statistics.CompressingFilterStats;
+import jakarta.servlet.http.HttpServletRequest;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -34,7 +36,6 @@ import java.util.zip.GZIPOutputStream;
 import java.util.zip.InflaterInputStream;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
-import javax.servlet.http.HttpServletRequest;
 
 /**
  * <p>Implementations of this abstract class can add compression of a particular type to a given
@@ -72,7 +73,7 @@ abstract class CompressingStreamFactory {
     private static final String COMPRESS_ENCODING = "compress";
     private static final String X_COMPRESS_ENCODING = "x-compress";
     static final String[] ALL_COMPRESSION_ENCODINGS = {
-        GZIP_ENCODING, DEFLATE_ENCODING, COMPRESS_ENCODING, X_GZIP_ENCODING, X_COMPRESS_ENCODING
+            GZIP_ENCODING, DEFLATE_ENCODING, COMPRESS_ENCODING, X_GZIP_ENCODING, X_COMPRESS_ENCODING
     };
     /**
      * "Any encoding" content type: the "*" wildcard.
@@ -87,7 +88,7 @@ abstract class CompressingStreamFactory {
      * {@link CompressingStreamFactory}.
      */
     private static final Map<String, String> bestEncodingCache =
-        Collections.synchronizedMap(new HashMap<String, String>(101));
+            Collections.synchronizedMap(new HashMap<String, String>(101));
     /**
      * Maps content type String to appropriate implementation of {@link CompressingStreamFactory}.
      */
@@ -107,7 +108,7 @@ abstract class CompressingStreamFactory {
 
     static {
         Map<String, CompressingStreamFactory> temp = new HashMap<String, CompressingStreamFactory>(
-            11);
+                11);
         temp.put(GZIP_ENCODING, GZIP_CSF);
         temp.put(X_GZIP_ENCODING, GZIP_CSF);
         temp.put(COMPRESS_ENCODING, ZIP_CSF);
@@ -117,8 +118,8 @@ abstract class CompressingStreamFactory {
     }
 
     private static OutputStream maybeWrapStatsOutputStream(OutputStream outputStream,
-        CompressingFilterContext context,
-        StatsField field) {
+                                                           CompressingFilterContext context,
+                                                           StatsField field) {
         assert outputStream != null;
         OutputStream result;
         CompressingFilterStats stats = context.getStats();
@@ -127,8 +128,8 @@ abstract class CompressingStreamFactory {
     }
 
     private static InputStream maybeWrapStatsInputStream(InputStream inputStream,
-        CompressingFilterContext context,
-        StatsField field) {
+                                                         CompressingFilterContext context,
+                                                         StatsField field) {
         assert inputStream != null;
         InputStream result;
         CompressingFilterStats stats = context.getStats();
@@ -165,7 +166,7 @@ abstract class CompressingStreamFactory {
     static String getBestContentEncoding(HttpServletRequest httpRequest) {
 
         String forcedEncoding = (String) httpRequest
-            .getAttribute(CompressingFilter.FORCE_ENCODING_KEY);
+                .getAttribute(CompressingFilter.FORCE_ENCODING_KEY);
         String bestEncoding;
         if (forcedEncoding != null) {
 
@@ -174,7 +175,7 @@ abstract class CompressingStreamFactory {
         } else {
 
             String acceptEncodingHeader = httpRequest.getHeader(
-                CompressingHttpServletResponse.ACCEPT_ENCODING_HEADER);
+                    CompressingHttpServletResponse.ACCEPT_ENCODING_HEADER);
             if (acceptEncodingHeader == null) {
 
                 bestEncoding = NO_ENCODING;
@@ -302,10 +303,10 @@ abstract class CompressingStreamFactory {
     }
 
     abstract CompressingOutputStream getCompressingStream(OutputStream servletOutputStream,
-        CompressingFilterContext context) throws IOException;
+                                                          CompressingFilterContext context) throws IOException;
 
     abstract CompressingInputStream getCompressingStream(InputStream servletInputStream,
-        CompressingFilterContext context) throws IOException;
+                                                         CompressingFilterContext context) throws IOException;
 
     private static final class ContentEncodingQ {
 
@@ -336,16 +337,16 @@ abstract class CompressingStreamFactory {
 
         @Override
         CompressingOutputStream getCompressingStream(final OutputStream outputStream,
-            final CompressingFilterContext context) throws IOException {
+                                                     final CompressingFilterContext context) throws IOException {
             return new CompressingOutputStream() {
                 private final DeflaterOutputStream gzipOutputStream =
-                    new LevelGZIPOutputStream(
-                        CompressingStreamFactory.maybeWrapStatsOutputStream(
-                            outputStream, context, StatsField.RESPONSE_COMPRESSED_BYTES),
-                        context.getCompressionLevel());
+                        new LevelGZIPOutputStream(
+                                CompressingStreamFactory.maybeWrapStatsOutputStream(
+                                        outputStream, context, StatsField.RESPONSE_COMPRESSED_BYTES),
+                                context.getCompressionLevel());
                 private final OutputStream statsOutputStream =
-                    CompressingStreamFactory.maybeWrapStatsOutputStream(
-                        gzipOutputStream, context, StatsField.RESPONSE_INPUT_BYTES);
+                        CompressingStreamFactory.maybeWrapStatsOutputStream(
+                                gzipOutputStream, context, StatsField.RESPONSE_INPUT_BYTES);
 
                 public OutputStream getCompressingOutputStream() {
                     return statsOutputStream;
@@ -359,15 +360,15 @@ abstract class CompressingStreamFactory {
 
         @Override
         CompressingInputStream getCompressingStream(final InputStream inputStream,
-            final CompressingFilterContext context) {
+                                                    final CompressingFilterContext context) {
             return new CompressingInputStream() {
                 public InputStream getCompressingInputStream() throws IOException {
                     return CompressingStreamFactory.maybeWrapStatsInputStream(
-                        new GZIPInputStream(
-                            CompressingStreamFactory.maybeWrapStatsInputStream(
-                                inputStream, context, StatsField.REQUEST_COMPRESSED_BYTES)),
-                        context,
-                        StatsField.REQUEST_INPUT_BYTES);
+                            new GZIPInputStream(
+                                    CompressingStreamFactory.maybeWrapStatsInputStream(
+                                            inputStream, context, StatsField.REQUEST_COMPRESSED_BYTES)),
+                            context,
+                            StatsField.REQUEST_INPUT_BYTES);
                 }
             };
         }
@@ -375,7 +376,7 @@ abstract class CompressingStreamFactory {
         private static class LevelGZIPOutputStream extends GZIPOutputStream {
 
             public LevelGZIPOutputStream(OutputStream out, int compressionLevel)
-                throws IOException {
+                    throws IOException {
                 super(out);
                 def.setLevel(compressionLevel);
             }
@@ -386,15 +387,15 @@ abstract class CompressingStreamFactory {
 
         @Override
         CompressingOutputStream getCompressingStream(final OutputStream outputStream,
-            final CompressingFilterContext context) {
+                                                     final CompressingFilterContext context) {
             return new CompressingOutputStream() {
                 private final DeflaterOutputStream zipOutputStream =
-                    new ZipOutputStream(
-                        CompressingStreamFactory.maybeWrapStatsOutputStream(
-                            outputStream, context, StatsField.RESPONSE_COMPRESSED_BYTES));
+                        new ZipOutputStream(
+                                CompressingStreamFactory.maybeWrapStatsOutputStream(
+                                        outputStream, context, StatsField.RESPONSE_COMPRESSED_BYTES));
                 private final OutputStream statsOutputStream =
-                    CompressingStreamFactory.maybeWrapStatsOutputStream(
-                        zipOutputStream, context, StatsField.RESPONSE_INPUT_BYTES);
+                        CompressingStreamFactory.maybeWrapStatsOutputStream(
+                                zipOutputStream, context, StatsField.RESPONSE_INPUT_BYTES);
 
                 public OutputStream getCompressingOutputStream() {
                     return statsOutputStream;
@@ -408,15 +409,15 @@ abstract class CompressingStreamFactory {
 
         @Override
         CompressingInputStream getCompressingStream(final InputStream inputStream,
-            final CompressingFilterContext context) {
+                                                    final CompressingFilterContext context) {
             return new CompressingInputStream() {
                 public InputStream getCompressingInputStream() {
                     return CompressingStreamFactory.maybeWrapStatsInputStream(
-                        new ZipInputStream(
-                            CompressingStreamFactory.maybeWrapStatsInputStream(
-                                inputStream, context, StatsField.REQUEST_COMPRESSED_BYTES)),
-                        context,
-                        StatsField.REQUEST_INPUT_BYTES);
+                            new ZipInputStream(
+                                    CompressingStreamFactory.maybeWrapStatsInputStream(
+                                            inputStream, context, StatsField.REQUEST_COMPRESSED_BYTES)),
+                            context,
+                            StatsField.REQUEST_INPUT_BYTES);
                 }
             };
         }
@@ -426,16 +427,16 @@ abstract class CompressingStreamFactory {
 
         @Override
         CompressingOutputStream getCompressingStream(final OutputStream outputStream,
-            final CompressingFilterContext context) {
+                                                     final CompressingFilterContext context) {
             return new CompressingOutputStream() {
                 private final DeflaterOutputStream deflaterOutputStream =
-                    new DeflaterOutputStream(
-                        CompressingStreamFactory.maybeWrapStatsOutputStream(
-                            outputStream, context, StatsField.RESPONSE_COMPRESSED_BYTES),
-                        new Deflater(context.getCompressionLevel()));
+                        new DeflaterOutputStream(
+                                CompressingStreamFactory.maybeWrapStatsOutputStream(
+                                        outputStream, context, StatsField.RESPONSE_COMPRESSED_BYTES),
+                                new Deflater(context.getCompressionLevel()));
                 private final OutputStream statsOutputStream =
-                    CompressingStreamFactory.maybeWrapStatsOutputStream(
-                        deflaterOutputStream, context, StatsField.RESPONSE_INPUT_BYTES);
+                        CompressingStreamFactory.maybeWrapStatsOutputStream(
+                                deflaterOutputStream, context, StatsField.RESPONSE_INPUT_BYTES);
 
                 public OutputStream getCompressingOutputStream() {
                     return statsOutputStream;
@@ -449,15 +450,15 @@ abstract class CompressingStreamFactory {
 
         @Override
         CompressingInputStream getCompressingStream(final InputStream inputStream,
-            final CompressingFilterContext context) {
+                                                    final CompressingFilterContext context) {
             return new CompressingInputStream() {
                 public InputStream getCompressingInputStream() {
                     return CompressingStreamFactory.maybeWrapStatsInputStream(
-                        new InflaterInputStream(
-                            CompressingStreamFactory.maybeWrapStatsInputStream(
-                                inputStream, context, StatsField.REQUEST_COMPRESSED_BYTES)),
-                        context,
-                        StatsField.REQUEST_INPUT_BYTES);
+                            new InflaterInputStream(
+                                    CompressingStreamFactory.maybeWrapStatsInputStream(
+                                            inputStream, context, StatsField.REQUEST_COMPRESSED_BYTES)),
+                            context,
+                            StatsField.REQUEST_INPUT_BYTES);
                 }
             };
         }

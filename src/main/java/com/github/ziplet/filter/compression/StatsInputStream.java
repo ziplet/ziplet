@@ -16,6 +16,7 @@
 package com.github.ziplet.filter.compression;
 
 import com.github.ziplet.filter.compression.statistics.CompressingFilterStats;
+
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -35,7 +36,7 @@ public class StatsInputStream extends InputStream {
     protected final StatsField field;
 
     public StatsInputStream(InputStream inputStream, CompressingFilterStats stats,
-        StatsField field) {
+                            StatsField field) {
         assert inputStream != null && stats != null;
         this.inputStream = inputStream;
         this.stats = stats;

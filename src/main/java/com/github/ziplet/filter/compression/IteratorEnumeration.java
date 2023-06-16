@@ -24,7 +24,7 @@ import java.util.Iterator;
  * @author Sean Owen
  * @since 1.6
  */
-final class IteratorEnumeration implements Enumeration<Object> {
+final class IteratorEnumeration implements Enumeration {
 
     private final Iterator<?> iterator;
 

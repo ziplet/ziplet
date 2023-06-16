@@ -15,14 +15,15 @@
  */
 package com.github.ziplet.filter.compression;
 
+import jakarta.servlet.ServletOutputStream;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponseWrapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
-import javax.servlet.ServletOutputStream;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpServletResponseWrapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Implementation of {@link HttpServletResponse} which will optionally compress data written to the
@@ -35,14 +36,14 @@ final class CompressingHttpServletResponse extends HttpServletResponseWrapper {
     static final String ACCEPT_ENCODING_HEADER = "Accept-Encoding";
     static final String CONTENT_ENCODING_HEADER = "Content-Encoding";
     private static final Logger LOGGER = LoggerFactory
-        .getLogger(CompressingHttpServletResponse.class);
+            .getLogger(CompressingHttpServletResponse.class);
     private static final String CACHE_CONTROL_HEADER = "Cache-Control";
     private static final String CONTENT_LENGTH_HEADER = "Content-Length";
     private static final String CONTENT_TYPE_HEADER = "Content-Type";
     private static final String ETAG_HEADER = "ETag";
     private static final String X_COMPRESSED_BY_HEADER = "X-Compressed-By";
     private static final String[] UNALLOWED_HEADERS = {CACHE_CONTROL_HEADER, CONTENT_LENGTH_HEADER,
-        CONTENT_ENCODING_HEADER, ETAG_HEADER, X_COMPRESSED_BY_HEADER};
+            CONTENT_ENCODING_HEADER, ETAG_HEADER, X_COMPRESSED_BY_HEADER};
     private static final String COMPRESSED_BY_VALUE = CompressingFilter.VERSION_STRING;
     private final HttpServletResponse httpResponse;
     private final CompressingFilterContext context;
@@ -61,9 +62,9 @@ final class CompressingHttpServletResponse extends HttpServletResponseWrapper {
     private boolean noTransformSet;
 
     CompressingHttpServletResponse(HttpServletResponse httpResponse,
-        CompressingStreamFactory compressingStreamFactory,
-        String contentEncoding,
-        CompressingFilterContext context) {
+                                   CompressingStreamFactory compressingStreamFactory,
+                                   String contentEncoding,
+                                   CompressingFilterContext context) {
         super(httpResponse);
         this.httpResponse = httpResponse;
         this.compressedContentEncoding = contentEncoding;
@@ -111,9 +112,9 @@ final class CompressingHttpServletResponse extends HttpServletResponseWrapper {
         isGetWriterCalled = true;
         if (printWriter == null) {
             printWriter = new PrintWriter(
-                new OutputStreamWriter(getCompressingServletOutputStream(),
-                    getCharacterEncoding()),
-                true);
+                    new OutputStreamWriter(getCompressingServletOutputStream(),
+                            getCharacterEncoding()),
+                    true);
         }
         return printWriter;
     }
@@ -224,7 +225,7 @@ final class CompressingHttpServletResponse extends HttpServletResponseWrapper {
     private void setETagHeader() {
         if (savedETag != null) {
             if (compressing && !savedETag.startsWith("W")) {
-        	String etag = savedETag.replaceFirst("(\"?)$", "-" + compressedContentEncoding + "$1");
+                String etag = savedETag.replaceFirst("(\"?)$", "-" + compressedContentEncoding + "$1");
                 httpResponse.setHeader(ETAG_HEADER, etag);
             } else {
                 httpResponse.setHeader(ETAG_HEADER, savedETag);
@@ -300,7 +301,7 @@ final class CompressingHttpServletResponse extends HttpServletResponseWrapper {
         if (compressing) {
             // do nothing -- caller-supplied content length is not meaningful
             LOGGER.debug(
-                "Ignoring application-specified content length since response is compressed");
+                    "Ignoring application-specified content length since response is compressed");
         } else {
             savedContentLength = contentLength;
             savedContentLengthSet = true;
@@ -339,8 +340,8 @@ final class CompressingHttpServletResponse extends HttpServletResponseWrapper {
     private void setCompressionResponseHeaders() {
         LOGGER.debug("Setting compression-related headers");
         String fullContentEncodingHeader = savedContentEncoding == null
-            ? compressedContentEncoding
-            : savedContentEncoding + ',' + compressedContentEncoding;
+                ? compressedContentEncoding
+                : savedContentEncoding + ',' + compressedContentEncoding;
         httpResponse.setHeader(CONTENT_ENCODING_HEADER, fullContentEncodingHeader);
         setETagHeader();
         if (context.isDebug()) {
@@ -430,10 +431,10 @@ final class CompressingHttpServletResponse extends HttpServletResponseWrapper {
     private CompressingServletOutputStream getCompressingServletOutputStream() throws IOException {
         if (compressingSOS == null) {
             compressingSOS =
-                new CompressingServletOutputStream(httpResponse.getOutputStream(),
-                    compressingStreamFactory,
-                    this,
-                    context);
+                    new CompressingServletOutputStream(httpResponse.getOutputStream(),
+                            compressingStreamFactory,
+                            this,
+                            context);
         }
 
         if (!compressingSOS.isClosed()) {
@@ -453,9 +454,9 @@ final class CompressingHttpServletResponse extends HttpServletResponseWrapper {
             return true;
         }
         if (savedContentLengthSet
-            && savedContentLength < (long) context.getCompressionThreshold()) {
+                && savedContentLength < (long) context.getCompressionThreshold()) {
             LOGGER.debug("Will not compress since page has set a content length which is less than "
-                + "the compression threshold: " + savedContentLength);
+                    + "the compression threshold: " + savedContentLength);
             return true;
         }
         if (noTransformSet) {

@@ -15,11 +15,12 @@
  */
 package com.github.ziplet.filter.compression;
 
-import com.mockrunner.mock.web.WebMockObjectFactory;
+import jakarta.servlet.FilterConfig;
+import junit.framework.TestCase;
+import org.springframework.mock.web.MockFilterConfig;
+
 import java.io.ByteArrayOutputStream;
 import java.util.Arrays;
-import javax.servlet.FilterConfig;
-import junit.framework.TestCase;
 
 /**
  * Tests {@link CompressingFilter}.
@@ -32,18 +33,18 @@ public final class ThresholdOutputStreamTest extends TestCase {
     private Callback callback;
     private ThresholdOutputStream tos;
 
+    FilterConfig filterConfig = new MockFilterConfig();
+
     @Override
     public void setUp() throws Exception {
         super.setUp();
         baos = new ByteArrayOutputStream();
         callback = new Callback();
-        WebMockObjectFactory factory = new WebMockObjectFactory();
-        FilterConfig filterConfig = factory.getMockFilterConfig();
         CompressingFilterContext context = new CompressingFilterContext(filterConfig);
         tos = new ThresholdOutputStream(baos,
-            CompressingStreamFactory.getFactoryForContentEncoding("gzip"),
-            context,
-            callback);
+                CompressingStreamFactory.getFactoryForContentEncoding("gzip"),
+                context,
+                callback);
     }
 
     public void testWriteFlush() throws Exception {
